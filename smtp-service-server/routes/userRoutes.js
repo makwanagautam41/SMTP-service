@@ -1,0 +1,33 @@
+import express from "express";
+import {
+  registerUser,
+  verifyUser,
+  loginUser,
+  getUserDetails,
+  logoutUser,
+  createApiKey,
+  deleteApiKey,
+  listApiKeys,
+  toggleApiKeyStatus,
+} from "../controllers/userController.js";
+import { protect } from "../middleware/auth.js";
+
+const router = express.Router();
+
+router.post("/register", registerUser);
+router.post("/verify/:token", verifyUser);
+router.post("/login", loginUser);
+router.post("/logout", logoutUser);
+
+// protected route
+router.use(protect);
+
+router.get("/me", getUserDetails);
+
+// api key routes
+router.post("/create-api-key", createApiKey);
+router.get("/api-keys", listApiKeys);
+router.delete("/:id", deleteApiKey);
+router.patch("/:id/toggle", protect, toggleApiKeyStatus);
+
+export default router;
