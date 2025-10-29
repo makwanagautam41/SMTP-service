@@ -10,15 +10,28 @@ import {
   ToggleLeft,
   ToggleRight,
 } from "lucide-react";
+import { useThemeStyles } from "../utils/useThemeStyles";
 
 const ApiKeys = () => {
   const { apiKeys, loading, createApiKey, deleteApiKey, toggleApiKey } =
     useApiKeys();
+  const {
+    background,
+    card,
+    border,
+    primary,
+    primaryForeground,
+    foreground,
+    muted,
+    input,
+    hover,
+  } = useThemeStyles();
+
   const [name, setName] = useState("");
   const [creating, setCreating] = useState(false);
   const [copiedKeyId, setCopiedKeyId] = useState(null);
-  const [togglingIds, setTogglingIds] = useState([]); // Track keys being toggled
-  const [deletingIds, setDeletingIds] = useState([]); // Track keys being deleted
+  const [togglingIds, setTogglingIds] = useState([]);
+  const [deletingIds, setDeletingIds] = useState([]);
 
   const handleCreate = async (e) => {
     e.preventDefault();
@@ -49,7 +62,7 @@ const ApiKeys = () => {
   const handleToggle = async (id) => {
     setTogglingIds((prev) => [...prev, id]);
     try {
-      await toggleApiKey(id); // Wait for server response
+      await toggleApiKey(id);
     } catch (err) {
       console.error("Failed to toggle API key:", err);
     } finally {
@@ -58,127 +71,198 @@ const ApiKeys = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto p-6 pt-20">
-      <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center gap-2">
-        <KeyRound className="text-blue-600" size={28} />
-        Manage API Keys
-      </h1>
-
-      {/* Create New Key */}
-      <form
-        onSubmit={handleCreate}
-        className="flex flex-col sm:flex-row gap-4 mb-8"
-      >
-        <input
-          type="text"
-          placeholder="Enter API Key Name..."
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
-        />
-        <button
-          type="submit"
-          disabled={creating}
-          className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center justify-center gap-2"
+    <div
+      className="min-h-screen flex flex-col items-center justify-start pt-10 px-2 transition-colors duration-300"
+      style={{
+        backgroundColor: background.color,
+        color: foreground.color,
+      }}
+    >
+      <div className="w-full max-w-5xl">
+        <h1
+          className="text-3xl font-bold mb-6 flex items-center gap-2"
+          style={{ color: primary.color }}
         >
-          {creating ? <Loader2 className="animate-spin" size={20} /> : "Create"}
-        </button>
-      </form>
+          <KeyRound size={28} />
+          Manage API Keys
+        </h1>
 
-      {/* API Keys List */}
-      {loading ? (
-        <div className="text-center text-gray-500">Loading keys...</div>
-      ) : apiKeys.length === 0 ? (
-        <div className="text-center text-gray-500">
-          No API keys created yet.
-        </div>
-      ) : (
-        <motion.div layout className="grid gap-4 sm:grid-cols-2 md:grid-cols-3">
-          {apiKeys.map((keyObj) => {
-            const isToggling = togglingIds.includes(keyObj._id);
+        {/* Create New Key */}
+        <form
+          onSubmit={handleCreate}
+          className="flex flex-col sm:flex-row gap-4 mb-8"
+        >
+          <input
+            type="text"
+            placeholder="Enter API Key Name..."
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="flex-grow px-4 py-2 rounded-lg focus:outline-none transition-colors duration-200"
+            style={{
+              backgroundColor: card.color,
+              border: `1px solid ${input.color}`,
+              color: foreground.color,
+            }}
+          />
+          <button
+            type="submit"
+            disabled={creating}
+            className="rounded-lg font-medium px-6 py-2 flex items-center justify-center gap-2 transition-colors duration-300"
+            style={{
+              backgroundColor: primary.color,
+              color: primaryForeground.color,
+              opacity: creating ? 0.8 : 1,
+              cursor: creating ? "not-allowed" : "pointer",
+            }}
+            onMouseEnter={(e) =>
+              (e.target.style.backgroundColor = hover.primary)
+            }
+            onMouseLeave={(e) =>
+              (e.target.style.backgroundColor = primary.color)
+            }
+          >
+            {creating ? (
+              <Loader2 className="animate-spin" size={20} />
+            ) : (
+              "Create"
+            )}
+          </button>
+        </form>
 
-            return (
-              <motion.div
-                key={keyObj._id}
-                layout
-                className="p-4 bg-white rounded-lg shadow-md border border-gray-100 hover:shadow-lg transition"
-              >
-                <div className="flex justify-between items-center mb-2">
-                  <h2 className="font-semibold text-gray-800">{keyObj.name}</h2>
-                  <span
-                    className={`text-xs px-2 py-1 rounded-full transition-colors duration-300 ${
-                      keyObj.active
-                        ? "bg-green-100 text-green-700"
-                        : "bg-red-100 text-red-700"
-                    }`}
+        {/* API Keys List */}
+        {loading ? (
+          <div
+            className="text-center font-medium"
+            style={{ color: muted.color }}
+          >
+            Loading keys...
+          </div>
+        ) : apiKeys.length === 0 ? (
+          <div
+            className="text-center font-medium"
+            style={{ color: muted.color }}
+          >
+            No API keys created yet.
+          </div>
+        ) : (
+          <motion.div
+            layout
+            className="grid gap-4 sm:grid-cols-2 md:grid-cols-3"
+          >
+            {apiKeys.map((keyObj) => {
+              const isToggling = togglingIds.includes(keyObj._id);
+              const isDeleting = deletingIds.includes(keyObj._id);
+
+              return (
+                <motion.div
+                  key={keyObj._id}
+                  layout
+                  className="p-4 rounded-xl shadow-md transition-all duration-300"
+                  style={{
+                    backgroundColor: card.color,
+                    color: foreground.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
+                  <div className="flex justify-between items-center mb-2">
+                    <h2 className="font-semibold">{keyObj.name}</h2>
+                    <span
+                      className="text-xs px-2 py-1 rounded-full font-medium"
+                      style={{
+                        backgroundColor: keyObj.active
+                          ? "rgba(34,197,94,0.15)"
+                          : "rgba(239,68,68,0.15)",
+                        color: keyObj.active ? "#16a34a" : "#ef4444",
+                      }}
+                    >
+                      {keyObj.active ? "Active" : "Inactive"}
+                    </span>
+                  </div>
+
+                  <div
+                    className="font-mono text-sm p-2 rounded break-all"
+                    style={{
+                      backgroundColor: muted.color,
+                      border: `1px solid ${border.color}`,
+                    }}
                   >
-                    {keyObj.active ? "Active" : "Inactive"}
-                  </span>
-                </div>
+                    {keyObj.key.length > 20
+                      ? `${keyObj.key.slice(0, 20)}...`
+                      : keyObj.key}
+                  </div>
 
-                <div className="font-mono text-sm bg-gray-100 p-2 rounded overflow-hidden break-all">
-                  {keyObj.key.length > 20
-                    ? `${keyObj.key.slice(0, 20)}...`
-                    : keyObj.key}
-                </div>
+                  <div className="flex justify-end gap-3 mt-3">
+                    {/* Toggle Active/Inactive */}
+                    <motion.button
+                      onClick={() => handleToggle(keyObj._id)}
+                      className="flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium transition"
+                      whileTap={{ scale: 0.9 }}
+                      disabled={isToggling}
+                      style={{
+                        backgroundColor: keyObj.active
+                          ? "rgba(34,197,94,1)"
+                          : "rgba(156,163,175,0.5)",
+                        color: keyObj.active ? "#fff" : "#111",
+                      }}
+                    >
+                      {isToggling ? (
+                        <Loader2 className="animate-spin" size={16} />
+                      ) : keyObj.active ? (
+                        <>
+                          <ToggleRight size={16} /> Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <ToggleLeft size={16} /> Activate
+                        </>
+                      )}
+                    </motion.button>
 
-                <div className="flex justify-end gap-3 mt-3">
-                  {/* Toggle Active/Inactive */}
-                  <motion.button
-                    onClick={() => handleToggle(keyObj._id)}
-                    className={`flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium transition ${
-                      keyObj.active
-                        ? "bg-green-600 text-white hover:bg-green-700"
-                        : "bg-gray-300 text-gray-800 hover:bg-gray-400"
-                    }`}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.2 }}
-                    disabled={isToggling}
-                  >
-                    {isToggling ? (
-                      <Loader2 className="animate-spin" size={16} />
-                    ) : keyObj.active ? (
-                      <>
-                        <ToggleRight size={16} /> Deactivate
-                      </>
-                    ) : (
-                      <>
-                        <ToggleLeft size={16} /> Activate
-                      </>
-                    )}
-                  </motion.button>
+                    {/* Copy Button */}
+                    <button
+                      onClick={() => handleCopy(keyObj._id, keyObj.key)}
+                      className="transition"
+                      style={{ color: primary.color }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = hover.primary)
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = primary.color)
+                      }
+                    >
+                      {copiedKeyId === keyObj._id ? (
+                        <Check size={18} className="text-green-500" />
+                      ) : (
+                        <Copy size={18} />
+                      )}
+                    </button>
 
-                  {/* Copy Button */}
-                  <button
-                    onClick={() => handleCopy(keyObj._id, keyObj.key)}
-                    className="flex items-center text-blue-600 hover:text-blue-800 transition"
-                  >
-                    {copiedKeyId === keyObj._id ? (
-                      <Check size={18} className="text-green-600" />
-                    ) : (
-                      <Copy size={18} />
-                    )}
-                  </button>
-
-                  {/* Delete Button */}
-                  <button
-                    onClick={() => handleDelete(keyObj._id)}
-                    className="flex items-center text-red-600 hover:text-red-800 transition"
-                    disabled={deletingIds.includes(keyObj._id)}
-                  >
-                    {deletingIds.includes(keyObj._id) ? (
-                      <Loader2 className="animate-spin" size={18} />
-                    ) : (
-                      <Trash2 size={18} />
-                    )}
-                  </button>
-                </div>
-              </motion.div>
-            );
-          })}
-        </motion.div>
-      )}
+                    {/* Delete Button */}
+                    <button
+                      onClick={() => handleDelete(keyObj._id)}
+                      disabled={isDeleting}
+                      className="transition"
+                      style={{ color: "#ef4444" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.color = "#dc2626")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.color = "#ef4444")
+                      }
+                    >
+                      {isDeleting ? (
+                        <Loader2 className="animate-spin" size={18} />
+                      ) : (
+                        <Trash2 size={18} />
+                      )}
+                    </button>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </motion.div>
+        )}
+      </div>
     </div>
   );
 };

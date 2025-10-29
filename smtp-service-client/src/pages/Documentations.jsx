@@ -13,6 +13,7 @@ import {
   Zap,
   Radio,
 } from "lucide-react";
+import { useThemeStyles } from "../utils/useThemeStyles";
 
 const Documentations = () => {
   const [copiedCode, setCopiedCode] = useState(null);
@@ -34,6 +35,23 @@ const Documentations = () => {
       element.scrollIntoView({ behavior: "smooth" });
     }
   };
+
+  const {
+    theme,
+    background,
+    foreground,
+    primary,
+    primaryForeground,
+    secondary,
+    secondaryForeground,
+    muted,
+    mutedForeground,
+    card,
+    cardForeground,
+    border,
+    hover,
+    legacy,
+  } = useThemeStyles();
 
   const examples = {
     curl: `curl -X POST \\
@@ -314,9 +332,25 @@ print('✅ Tracking complete')`,
     </div>
   );
 
+  const fixBarItems = [
+    { id: "overview", icon: <HelpCircle size={16} />, label: "Overview" },
+    { id: "realtime", icon: <Radio size={16} />, label: "Real-Time Tracking" },
+    { id: "auth", icon: <Key size={16} />, label: "Authentication" },
+    { id: "send", icon: <Send size={16} />, label: "Send Email API" },
+    { id: "sse", icon: <Zap size={16} />, label: "SSE Endpoint" },
+    { id: "examples", icon: <Code size={16} />, label: "Code Examples" },
+    { id: "responses", icon: <AlertCircle size={16} />, label: "Responses" },
+  ];
+
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <div className="max-w-6xl mx-auto p-4 md:p-8">
+    <div
+      className="min-h-screen text-gray-800"
+      style={{
+        backgroundColor: background.color,
+        color: foreground.color,
+      }}
+    >
+      <div className="max-w-6xl mx-auto p-2">
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
@@ -326,7 +360,10 @@ print('✅ Tracking complete')`,
                 SMTP‑LITE API Documentation
               </h1>
             </div>
-            <p className="mt-1 text-gray-600 max-w-xl">
+            <p
+              className="mt-1 max-w-xl"
+              style={{ color: mutedForeground.color }}
+            >
               Send transactional emails with real-time tracking. Get instant
               status updates via Server-Sent Events (SSE).
             </p>
@@ -334,14 +371,22 @@ print('✅ Tracking complete')`,
           <div className="flex gap-3 items-center">
             <Link
               to="/apikeys"
-              className="inline-flex items-center gap-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-md hover:bg-blue-700 transition"
+              style={{
+                backgroundColor: primary.color,
+                color: primaryForeground.color,
+              }}
             >
               <Key size={18} />
               Get API Key
             </Link>
             <button
               onClick={(e) => scrollToSection(e, "getting-started")}
-              className="inline-flex items-center gap-2 border border-gray-200 px-4 py-2 rounded-md hover:bg-gray-100 transition"
+              className="inline-flex items-center gap-2 border border-gray-200 px-4 py-2 rounded-md transition"
+              style={{
+                borderColor: border.color,
+                color: foreground.color,
+              }}
             >
               <Code size={18} />
               Quick Start
@@ -353,80 +398,38 @@ print('✅ Tracking complete')`,
         <main className="grid grid-cols-1 md:grid-cols-4 gap-6">
           {/* Sidebar */}
           <nav className="md:col-span-1 md:sticky md:top-4 self-start">
-            <div className="bg-white rounded-lg shadow p-4">
+            <div
+              className="rounded-lg shadow p-4"
+              style={{
+                backgroundColor: card.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
               <ul className="space-y-1 text-sm">
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "overview")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <HelpCircle size={16} />
-                    Overview
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "realtime")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <Radio size={16} />
-                    Real-Time Tracking
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "auth")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <Key size={16} />
-                    Authentication
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "send")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <Send size={16} />
-                    Send Email API
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "sse")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <Zap size={16} />
-                    SSE Endpoint
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "examples")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <Code size={16} />
-                    Code Examples
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "responses")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <AlertCircle size={16} />
-                    Responses
-                  </button>
-                </li>
-                <li>
-                  <button
-                    onClick={(e) => scrollToSection(e, "tips")}
-                    className="w-full flex items-center gap-2 py-2 px-3 rounded hover:bg-blue-50 hover:text-blue-600 transition text-left"
-                  >
-                    <HelpCircle size={16} />
-                    Best Practices
-                  </button>
-                </li>
+                {fixBarItems.map(({ id, icon, label }) => (
+                  <li key={id}>
+                    <button
+                      onClick={(e) => scrollToSection(e, id)}
+                      className="w-full flex items-center gap-2 py-2 px-3 rounded text-left transition duration-200"
+                      style={{
+                        backgroundColor: "transparent",
+                        color: foreground.color,
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor =
+                          hover.background;
+                        e.currentTarget.style.color = hover.primary;
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = "transparent";
+                        e.currentTarget.style.color = foreground.color;
+                      }}
+                    >
+                      {icon}
+                      {label}
+                    </button>
+                  </li>
+                ))}
               </ul>
             </div>
           </nav>
@@ -434,24 +437,47 @@ print('✅ Tracking complete')`,
           {/* Content */}
           <article className="md:col-span-3 space-y-8">
             {/* Overview */}
-            <section id="overview" className="bg-white rounded-lg shadow p-6">
+            <section
+              id="overview"
+              className="rounded-lg shadow p-6"
+              style={{
+                backgroundColor: card.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
               <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
                 <HelpCircle className="text-blue-600" />
                 Overview
               </h2>
-              <p className="text-gray-700 leading-relaxed mb-3">
+              <p
+                className="leading-relaxed mb-3"
+                style={{ color: mutedForeground.color }}
+              >
                 SMTP-LITE is an event-driven email API service that provides
                 real-time delivery tracking. Unlike traditional email services
                 that require polling, SMTP-LITE uses Server-Sent Events (SSE) to
                 push status updates instantly to your application.
               </p>
-              <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded mt-4">
-                <h3 className="font-semibold text-blue-900 mb-2">
+              <div
+                className="p-4 rounded mt-4 transition-colors duration-300"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                  color: foreground.color,
+                }}
+              >
+                <h3
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
                   Key Features:
                 </h3>
-                <ul className="space-y-1 text-sm text-blue-800 list-disc list-inside">
+                <ul
+                  className="space-y-1 text-sm list-disc list-inside"
+                  style={{ color: mutedForeground.color }}
+                >
                   <li>Real-time email delivery tracking via SSE</li>
-                  <li>No polling required - instant status updates</li>
+                  <li>No polling required – instant status updates</li>
                   <li>Simple REST API with JSON payloads</li>
                   <li>
                     Works with Node.js, Python, PHP, ASP.NET, and browsers
@@ -462,53 +488,116 @@ print('✅ Tracking complete')`,
             </section>
 
             {/* Real-Time Tracking */}
-            <section id="realtime" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Radio className="text-blue-600" />
+            <section
+              id="realtime"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Radio style={{ color: primary.color }} />
                 Real-Time Tracking System
               </h2>
-              <p className="text-gray-700 leading-relaxed mb-4">
+
+              <p
+                className="leading-relaxed mb-4"
+                style={{ color: mutedForeground.color }}
+              >
                 SMTP-LITE uses Server-Sent Events (SSE) to provide live email
                 delivery updates without polling.
               </p>
 
-              <h3 className="text-lg font-semibold mb-3 text-gray-900">
+              <h3
+                className="text-lg font-semibold mb-3"
+                style={{ color: foreground.color }}
+              >
                 How It Works
               </h3>
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <ol className="space-y-3 text-gray-700">
+
+              <div
+                className="rounded-lg p-4 mb-4 transition-colors duration-300"
+                style={{ backgroundColor: secondary.color }}
+              >
+                <ol className="space-y-3" style={{ color: foreground.color }}>
                   <li className="flex gap-3">
-                    <span className="font-bold text-blue-600">1.</span>
+                    <span
+                      className="font-bold"
+                      style={{ color: primary.color }}
+                    >
+                      1.
+                    </span>
                     <span>
                       Send an email via{" "}
-                      <code className="bg-gray-200 px-2 py-1 rounded text-sm">
+                      <code
+                        className="px-2 py-1 rounded text-sm"
+                        style={{
+                          backgroundColor: muted.color,
+                          color: mutedForeground.color,
+                        }}
+                      >
                         /api/email/send
                       </code>{" "}
                       and receive an email ID
                     </span>
                   </li>
+
                   <li className="flex gap-3">
-                    <span className="font-bold text-blue-600">2.</span>
+                    <span
+                      className="font-bold"
+                      style={{ color: primary.color }}
+                    >
+                      2.
+                    </span>
                     <span>
                       Connect to{" "}
-                      <code className="bg-gray-200 px-2 py-1 rounded text-sm">
+                      <code
+                        className="px-2 py-1 rounded text-sm"
+                        style={{
+                          backgroundColor: muted.color,
+                          color: mutedForeground.color,
+                        }}
+                      >
                         /api/email/events/:id
                       </code>{" "}
                       using EventSource
                     </span>
                   </li>
+
                   <li className="flex gap-3">
-                    <span className="font-bold text-blue-600">3.</span>
+                    <span
+                      className="font-bold"
+                      style={{ color: primary.color }}
+                    >
+                      3.
+                    </span>
                     <span>
                       Receive instant status updates as the email moves through
                       stages
                     </span>
                   </li>
+
                   <li className="flex gap-3">
-                    <span className="font-bold text-blue-600">4.</span>
+                    <span
+                      className="font-bold"
+                      style={{ color: primary.color }}
+                    >
+                      4.
+                    </span>
                     <span>
                       Status progression:{" "}
-                      <code className="bg-gray-200 px-2 py-1 rounded text-sm">
+                      <code
+                        className="px-2 py-1 rounded text-sm"
+                        style={{
+                          backgroundColor: muted.color,
+                          color: mutedForeground.color,
+                        }}
+                      >
                         pending → sending → sent/failed
                       </code>
                     </span>
@@ -516,13 +605,25 @@ print('✅ Tracking complete')`,
                 </ol>
               </div>
 
-              <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded">
-                <h4 className="font-semibold text-green-800 mb-2">
+              <div
+                className="p-4 rounded transition-colors duration-300"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
                   Benefits of SSE:
                 </h4>
-                <ul className="space-y-1 text-sm text-green-700 list-disc list-inside">
+                <ul
+                  className="space-y-1 text-sm list-disc list-inside"
+                  style={{ color: mutedForeground.color }}
+                >
                   <li>
-                    No polling overhead - server pushes updates automatically
+                    No polling overhead – server pushes updates automatically
                   </li>
                   <li>Instant notifications when email status changes</li>
                   <li>Native browser support with EventSource API</li>
@@ -535,35 +636,84 @@ print('✅ Tracking complete')`,
             </section>
 
             {/* Authentication */}
-            <section id="auth" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Key className="text-blue-600" />
+            <section
+              id="auth"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Key style={{ color: primary.color }} />
                 Authentication
               </h2>
-              <p className="text-gray-700 leading-relaxed mb-4">
+
+              <p
+                className="leading-relaxed mb-4"
+                style={{ color: mutedForeground.color }}
+              >
                 All API requests require an API key. Include it in the{" "}
-                <code className="bg-gray-100 px-2 py-1 rounded text-sm">
+                <code
+                  className="px-2 py-1 rounded text-sm"
+                  style={{
+                    backgroundColor: muted.color,
+                    color: mutedForeground.color,
+                  }}
+                >
                   x-api-key
                 </code>{" "}
                 header of every request.
               </p>
-              <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
-                <p className="text-sm text-gray-700">
+
+              {/* Info Box */}
+              <div
+                className="p-4 rounded transition-colors duration-300"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                }}
+              >
+                <p className="text-sm" style={{ color: foreground.color }}>
                   <strong>Get your API key:</strong> Visit{" "}
                   <Link
                     to="/apikeys"
-                    className="text-blue-600 hover:underline inline-flex items-center gap-1"
+                    className="inline-flex items-center gap-1 transition-colors duration-200"
+                    style={{
+                      color: primary.color,
+                      textDecoration: "none",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.color = legacy.hover.color)
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.color = primary.color)
+                    }
                   >
                     API Keys Management <ExternalLink size={14} />
                   </Link>
                 </p>
               </div>
 
-              <div className="mt-4 bg-yellow-50 border-l-4 border-yellow-600 p-4 rounded">
-                <h4 className="font-semibold text-yellow-800 mb-2">
+              {/* Security Warning Box */}
+              <div
+                className="mt-4 p-4 rounded transition-colors duration-300"
+                style={{
+                  backgroundColor: muted.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
                   🔒 Security Note:
                 </h4>
-                <p className="text-sm text-yellow-700">
+                <p className="text-sm" style={{ color: mutedForeground.color }}>
                   Never expose your API key in client-side code. Use environment
                   variables and make API calls from your backend server.
                 </p>
@@ -571,55 +721,136 @@ print('✅ Tracking complete')`,
             </section>
 
             {/* Send Email API */}
-            <section id="send" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Send className="text-blue-600" />
+            <section
+              id="send"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Send style={{ color: primary.color }} />
                 Send Email API
               </h2>
 
+              {/* Endpoint Section */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Endpoint</h3>
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Endpoint
+                </h3>
+                <div
+                  className="p-4 rounded-lg font-mono text-sm"
+                  style={{
+                    backgroundColor: secondary.color,
+                    color: secondaryForeground.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
                   POST https://smtp-service-server.vercel.app/api/email/send
                 </div>
               </div>
 
+              {/* Headers Table */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Headers</h3>
-                <table className="w-full border-collapse border border-gray-200 text-sm">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Headers
+                </h3>
+                <table
+                  className="w-full border-collapse text-sm rounded overflow-hidden"
+                  style={{ border: `1px solid ${border.color}` }}
+                >
                   <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-200 p-3 text-left">
+                    <tr
+                      style={{
+                        backgroundColor: secondary.color,
+                        color: secondaryForeground.color,
+                      }}
+                    >
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Header
                       </th>
-                      <th className="border border-gray-200 p-3 text-left">
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Value
                       </th>
-                      <th className="border border-gray-200 p-3 text-left">
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Required
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td className="border border-gray-200 p-3 font-mono">
+                    <tr
+                      style={{
+                        backgroundColor: card.color,
+                        color: foreground.color,
+                      }}
+                    >
+                      <td
+                        className="p-3 font-mono"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Content-Type
                       </td>
-                      <td className="border border-gray-200 p-3 font-mono">
+                      <td
+                        className="p-3 font-mono"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         application/json
                       </td>
-                      <td className="border border-gray-200 p-3 text-green-600 font-semibold">
+                      <td
+                        className="p-3 font-semibold"
+                        style={{
+                          border: `1px solid ${border.color}`,
+                          color: primary.color,
+                        }}
+                      >
                         Yes
                       </td>
                     </tr>
-                    <tr>
-                      <td className="border border-gray-200 p-3 font-mono">
+                    <tr
+                      style={{
+                        backgroundColor: card.color,
+                        color: foreground.color,
+                      }}
+                    >
+                      <td
+                        className="p-3 font-mono"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         x-api-key
                       </td>
-                      <td className="border border-gray-200 p-3">
+                      <td
+                        className="p-3"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Your API key
                       </td>
-                      <td className="border border-gray-200 p-3 text-green-600 font-semibold">
+                      <td
+                        className="p-3 font-semibold"
+                        style={{
+                          border: `1px solid ${border.color}`,
+                          color: primary.color,
+                        }}
+                      >
                         Yes
                       </td>
                     </tr>
@@ -627,92 +858,174 @@ print('✅ Tracking complete')`,
                 </table>
               </div>
 
+              {/* Request Body Table */}
               <div>
-                <h3 className="text-lg font-semibold mb-2">Request Body</h3>
-                <table className="w-full border-collapse border border-gray-200 text-sm">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Request Body
+                </h3>
+                <table
+                  className="w-full border-collapse text-sm rounded overflow-hidden"
+                  style={{ border: `1px solid ${border.color}` }}
+                >
                   <thead>
-                    <tr className="bg-gray-50">
-                      <th className="border border-gray-200 p-3 text-left">
+                    <tr
+                      style={{
+                        backgroundColor: secondary.color,
+                        color: secondaryForeground.color,
+                      }}
+                    >
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Field
                       </th>
-                      <th className="border border-gray-200 p-3 text-left">
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Type
                       </th>
-                      <th className="border border-gray-200 p-3 text-left">
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Required
                       </th>
-                      <th className="border border-gray-200 p-3 text-left">
+                      <th
+                        className="p-3 text-left"
+                        style={{ border: `1px solid ${border.color}` }}
+                      >
                         Description
                       </th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr>
-                      <td className="border border-gray-200 p-3 font-mono">
-                        to
-                      </td>
-                      <td className="border border-gray-200 p-3">string</td>
-                      <td className="border border-gray-200 p-3 text-green-600 font-semibold">
-                        Yes
-                      </td>
-                      <td className="border border-gray-200 p-3">
-                        Recipient email address
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border border-gray-200 p-3 font-mono">
-                        subject
-                      </td>
-                      <td className="border border-gray-200 p-3">string</td>
-                      <td className="border border-gray-200 p-3 text-green-600 font-semibold">
-                        Yes
-                      </td>
-                      <td className="border border-gray-200 p-3">
-                        Email subject line
-                      </td>
-                    </tr>
-                    <tr>
-                      <td className="border border-gray-200 p-3 font-mono">
-                        html
-                      </td>
-                      <td className="border border-gray-200 p-3">string</td>
-                      <td className="border border-gray-200 p-3 text-green-600 font-semibold">
-                        Yes
-                      </td>
-                      <td className="border border-gray-200 p-3">
-                        HTML email body
-                      </td>
-                    </tr>
+                    {[
+                      {
+                        field: "to",
+                        type: "string",
+                        desc: "Recipient email address",
+                      },
+                      {
+                        field: "subject",
+                        type: "string",
+                        desc: "Email subject line",
+                      },
+                      {
+                        field: "html",
+                        type: "string",
+                        desc: "HTML email body",
+                      },
+                    ].map((row, index) => (
+                      <tr
+                        key={index}
+                        style={{
+                          backgroundColor: card.color,
+                          color: foreground.color,
+                        }}
+                      >
+                        <td
+                          className="p-3 font-mono"
+                          style={{ border: `1px solid ${border.color}` }}
+                        >
+                          {row.field}
+                        </td>
+                        <td
+                          className="p-3"
+                          style={{ border: `1px solid ${border.color}` }}
+                        >
+                          {row.type}
+                        </td>
+                        <td
+                          className="p-3 font-semibold"
+                          style={{
+                            border: `1px solid ${border.color}`,
+                            color: primary.color,
+                          }}
+                        >
+                          Yes
+                        </td>
+                        <td
+                          className="p-3"
+                          style={{ border: `1px solid ${border.color}` }}
+                        >
+                          {row.desc}
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </section>
 
             {/* SSE Endpoint */}
-            <section id="sse" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Zap className="text-blue-600" />
+            <section
+              id="sse"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Zap style={{ color: primary.color }} />
                 Server-Sent Events (SSE) Endpoint
               </h2>
 
+              {/* Endpoint Section */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">Endpoint</h3>
-                <div className="bg-gray-900 text-gray-100 p-4 rounded-lg font-mono text-sm">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Endpoint
+                </h3>
+                <div
+                  className="p-4 rounded-lg font-mono text-sm"
+                  style={{
+                    backgroundColor: muted.color,
+                    color: mutedForeground.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
                   GET
                   https://smtp-service-server.vercel.app/api/email/events/:id
                 </div>
-                <p className="text-sm text-gray-600 mt-2">
+                <p
+                  className="text-sm mt-2"
+                  style={{ color: mutedForeground.color }}
+                >
                   Replace{" "}
-                  <code className="bg-gray-100 px-2 py-1 rounded">:id</code>{" "}
+                  <code
+                    className="px-2 py-1 rounded"
+                    style={{
+                      backgroundColor: secondary.color,
+                      color: secondaryForeground.color,
+                    }}
+                  >
+                    :id
+                  </code>{" "}
                   with the email ID returned from the send endpoint.
                 </p>
               </div>
 
+              {/* Event Stream Format */}
               <div className="mb-6">
-                <h3 className="text-lg font-semibold mb-2">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
                   Event Stream Format
                 </h3>
-                <p className="text-gray-700 mb-3">
+                <p className="mb-3" style={{ color: mutedForeground.color }}>
                   The server will send JSON events as the email status changes:
                 </p>
                 <CodeBlock
@@ -725,45 +1038,111 @@ print('✅ Tracking complete')`,
                 />
               </div>
 
-              <div className="bg-purple-50 border-l-4 border-purple-600 p-4 rounded">
-                <h4 className="font-semibold text-purple-800 mb-2">
+              {/* Status Flow */}
+              <div
+                className="p-4 rounded border-l-4"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderColor: primary.color,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
                   Status Flow:
                 </h4>
-                <div className="flex items-center gap-2 text-sm text-purple-700">
-                  <span className="bg-yellow-200 px-3 py-1 rounded">
+                <div
+                  className="flex items-center gap-2 text-sm flex-wrap"
+                  style={{ color: foreground.color }}
+                >
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: muted.color,
+                      color: mutedForeground.color,
+                    }}
+                  >
                     pending
                   </span>
                   <span>→</span>
-                  <span className="bg-blue-200 px-3 py-1 rounded">sending</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: muted.color,
+                      color: foreground.color,
+                    }}
+                  >
+                    sending
+                  </span>
                   <span>→</span>
-                  <span className="bg-green-200 px-3 py-1 rounded">sent</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: primary.color,
+                      color: primaryForeground.color,
+                    }}
+                  >
+                    sent
+                  </span>
                   <span>/</span>
-                  <span className="bg-red-200 px-3 py-1 rounded">failed</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: hover.secondary,
+                      color: hover.foreground,
+                    }}
+                  >
+                    failed
+                  </span>
                 </div>
               </div>
             </section>
 
             {/* Examples */}
-            <section id="examples" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-                <Code className="text-blue-600" />
+            <section
+              id="examples"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-6 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Code style={{ color: primary.color }} />
                 Code Examples
               </h2>
 
               <div className="space-y-8">
+                {/* Basic Email Sending */}
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">
+                  <h3
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: foreground.color }}
+                  >
                     Basic Email Sending
                   </h3>
 
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold mb-3">PHP</h4>
+                      <h4
+                        className="text-lg font-semibold mb-3"
+                        style={{ color: primary.color }}
+                      >
+                        PHP
+                      </h4>
                       <CodeBlock code={examples.php} language="php" id="php" />
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-semibold mb-3">
+                      <h4
+                        className="text-lg font-semibold mb-3"
+                        style={{ color: primary.color }}
+                      >
                         ASP.NET (C#)
                       </h4>
                       <CodeBlock
@@ -775,14 +1154,21 @@ print('✅ Tracking complete')`,
                   </div>
                 </div>
 
+                {/* Real-Time Tracking */}
                 <div>
-                  <h3 className="text-xl font-semibold mb-4 text-gray-900">
+                  <h3
+                    className="text-xl font-semibold mb-4"
+                    style={{ color: foreground.color }}
+                  >
                     Real-Time Tracking with SSE
                   </h3>
 
                   <div className="space-y-6">
                     <div>
-                      <h4 className="text-lg font-semibold mb-3">
+                      <h4
+                        className="text-lg font-semibold mb-3"
+                        style={{ color: primary.color }}
+                      >
                         Node.js with SSE
                       </h4>
                       <CodeBlock
@@ -793,7 +1179,10 @@ print('✅ Tracking complete')`,
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-semibold mb-3">
+                      <h4
+                        className="text-lg font-semibold mb-3"
+                        style={{ color: primary.color }}
+                      >
                         Browser with EventSource
                       </h4>
                       <CodeBlock
@@ -804,7 +1193,10 @@ print('✅ Tracking complete')`,
                     </div>
 
                     <div>
-                      <h4 className="text-lg font-semibold mb-3">
+                      <h4
+                        className="text-lg font-semibold mb-3"
+                        style={{ color: primary.color }}
+                      >
                         Python with SSE
                       </h4>
                       <CodeBlock
@@ -812,13 +1204,28 @@ print('✅ Tracking complete')`,
                         language="python"
                         id="sse-python"
                       />
-                      <p className="text-sm text-gray-600 mt-2">
+                      <p
+                        className="text-sm mt-2"
+                        style={{ color: mutedForeground.color }}
+                      >
                         Note: Requires{" "}
-                        <code className="bg-gray-100 px-2 py-1 rounded">
+                        <code
+                          className="px-2 py-1 rounded"
+                          style={{
+                            backgroundColor: secondary.color,
+                            color: secondaryForeground.color,
+                          }}
+                        >
                           sseclient-py
                         </code>{" "}
                         package:
-                        <code className="bg-gray-100 px-2 py-1 rounded ml-2">
+                        <code
+                          className="px-2 py-1 rounded ml-2"
+                          style={{
+                            backgroundColor: secondary.color,
+                            color: secondaryForeground.color,
+                          }}
+                        >
                           pip install sseclient-py
                         </code>
                       </p>
@@ -829,18 +1236,35 @@ print('✅ Tracking complete')`,
             </section>
 
             {/* Responses */}
-            <section id="responses" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <AlertCircle className="text-blue-600" />
+            <section
+              id="responses"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <AlertCircle style={{ color: primary.color }} />
                 API Responses
               </h2>
 
               <div className="space-y-6">
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-green-600">
+                  <h3
+                    className="text-lg font-semibold mb-2"
+                    style={{ color: "#16a34a" }}
+                  >
                     Success Response (200)
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p
+                    className="text-sm mb-2"
+                    style={{ color: mutedForeground.color }}
+                  >
                     When email is successfully queued:
                   </p>
                   <CodeBlock
@@ -855,7 +1279,10 @@ print('✅ Tracking complete')`,
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-red-600">
+                  <h3
+                    className="text-lg font-semibold mb-2"
+                    style={{ color: "#dc2626" }}
+                  >
                     Error Response (400/401/500)
                   </h3>
                   <CodeBlock
@@ -869,10 +1296,16 @@ print('✅ Tracking complete')`,
                 </div>
 
                 <div>
-                  <h3 className="text-lg font-semibold mb-2 text-blue-600">
+                  <h3
+                    className="text-lg font-semibold mb-2"
+                    style={{ color: primary.color }}
+                  >
                     SSE Status Updates
                   </h3>
-                  <p className="text-sm text-gray-600 mb-2">
+                  <p
+                    className="text-sm mb-2"
+                    style={{ color: mutedForeground.color }}
+                  >
                     Events sent during email delivery:
                   </p>
                   <CodeBlock
@@ -888,265 +1321,48 @@ print('✅ Tracking complete')`,
   "id": "507f1f77bcf86cd799439011",
   "timestamp": "2025-10-27T10:30:00.000Z"
 }
-
-// Event 3 (Alternative): Email failed
-{
-  "status": "failed",
-  "id": "507f1f77bcf86cd799439011",
-  "error": "SMTP connection timeout",
-  "timestamp": "2025-10-27T10:30:00.000Z"
-}`}
+`}
                     language="json"
                     id="sse-responses"
                   />
                 </div>
 
-                <div className="bg-yellow-50 border-l-4 border-yellow-600 p-4 rounded">
-                  <h4 className="font-semibold text-yellow-800 mb-2">
+                <div
+                  className="rounded p-4 border-l-4"
+                  style={{
+                    backgroundColor: secondary.color,
+                    borderLeftColor: "#facc15",
+                  }}
+                >
+                  <h4
+                    className="font-semibold mb-2"
+                    style={{ color: secondaryForeground.color }}
+                  >
                     Common Error Codes
                   </h4>
-                  <ul className="space-y-2 text-sm text-yellow-900">
-                    <li className="flex items-start gap-2">
-                      <strong className="min-w-[3rem]">400:</strong>
-                      <span>
-                        Invalid request body, missing required fields (to,
-                        subject, html)
-                      </span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <strong className="min-w-[3rem]">401:</strong>
-                      <span>Invalid or missing x-api-key header</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <strong className="min-w-[3rem]">404:</strong>
-                      <span>Email ID not found (for SSE endpoint)</span>
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <strong className="min-w-[3rem]">500:</strong>
-                      <span>Server error while processing request</span>
-                    </li>
+                  <ul className="space-y-2 text-sm">
+                    {[
+                      [
+                        "400",
+                        "Invalid request body, missing required fields (to, subject, html)",
+                      ],
+                      ["401", "Invalid or missing x-api-key header"],
+                      ["404", "Email ID not found (for SSE endpoint)"],
+                      ["500", "Server error while processing request"],
+                    ].map(([code, message]) => (
+                      <li key={code} className="flex items-start gap-2">
+                        <strong
+                          className="min-w-[3rem]"
+                          style={{ color: primary.color }}
+                        >
+                          {code}:
+                        </strong>
+                        <span style={{ color: mutedForeground.color }}>
+                          {message}
+                        </span>
+                      </li>
+                    ))}
                   </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* Best Practices */}
-            <section id="tips" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <HelpCircle className="text-blue-600" />
-                Best Practices & Tips
-              </h2>
-
-              <div className="space-y-6">
-                <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
-                  <h4 className="font-semibold text-blue-800 mb-3 flex items-center gap-2">
-                    <Zap size={18} />
-                    Performance Tips
-                  </h4>
-                  <ul className="space-y-2 text-sm text-blue-900 list-disc list-inside">
-                    <li>
-                      Use SSE for real-time tracking instead of polling the API
-                      repeatedly
-                    </li>
-                    <li>
-                      Close SSE connections once email reaches final state
-                      (sent/failed)
-                    </li>
-                    <li>
-                      Implement connection error handling and automatic
-                      reconnection
-                    </li>
-                    <li>
-                      Cache API keys securely on your server, never in
-                      client-side code
-                    </li>
-                  </ul>
-                </div>
-
-                <div className="bg-green-50 border-l-4 border-green-600 p-4 rounded">
-                  <h4 className="font-semibold text-green-800 mb-3">
-                    ✓ Email Best Practices
-                  </h4>
-                  <ul className="space-y-2 text-sm text-green-900 list-disc list-inside">
-                    <li>Always validate email addresses before sending</li>
-                    <li>
-                      Use proper HTML structure with inline CSS for better email
-                      client compatibility
-                    </li>
-                    <li>
-                      Include plain text fallback when possible (future feature)
-                    </li>
-                    <li>
-                      Test emails with different email clients (Gmail, Outlook,
-                      etc.)
-                    </li>
-                    <li>Avoid spam trigger words in subject lines</li>
-                  </ul>
-                </div>
-
-                <div className="bg-purple-50 border-l-4 border-purple-600 p-4 rounded">
-                  <h4 className="font-semibold text-purple-800 mb-3">
-                    🔒 Security Best Practices
-                  </h4>
-                  <ul className="space-y-2 text-sm text-purple-900 list-disc list-inside">
-                    <li>
-                      Never expose API keys in client-side JavaScript or public
-                      repositories
-                    </li>
-                    <li>
-                      Use environment variables to store API keys securely
-                    </li>
-                    <li>
-                      Make API calls from your backend server, not directly from
-                      browsers
-                    </li>
-                    <li>Rotate API keys periodically for enhanced security</li>
-                    <li>Monitor API usage for unusual patterns</li>
-                  </ul>
-                </div>
-
-                <div className="bg-red-50 border-l-4 border-red-600 p-4 rounded">
-                  <h4 className="font-semibold text-red-800 mb-3">
-                    ✗ Common Issues & Solutions
-                  </h4>
-                  <div className="space-y-3 text-sm text-red-900">
-                    <div>
-                      <p className="font-semibold">401 Error - Unauthorized</p>
-                      <p className="ml-4 text-red-800">
-                        → Check that x-api-key header is included and correct
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">Email not received</p>
-                      <p className="ml-4 text-red-800">
-                        → Check spam/junk folder, verify recipient email address
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">CORS Error in Browser</p>
-                      <p className="ml-4 text-red-800">
-                        → Make API calls from your backend server instead
-                      </p>
-                    </div>
-                    <div>
-                      <p className="font-semibold">SSE Connection Timeout</p>
-                      <p className="ml-4 text-red-800">
-                        → Implement reconnection logic with exponential backoff
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="bg-gray-50 border-l-4 border-gray-600 p-4 rounded">
-                  <h4 className="font-semibold text-gray-800 mb-3">
-                    📊 Rate Limits & Quotas
-                  </h4>
-                  <ul className="space-y-2 text-sm text-gray-700 list-disc list-inside">
-                    <li>Free tier: 1,000 emails per month</li>
-                    <li>Professional tier: 50,000 emails per month</li>
-                    <li>Enterprise tier: Custom limits available</li>
-                    <li>Rate limit: 100 requests per minute per API key</li>
-                    <li>Contact support for higher limits</li>
-                  </ul>
-                </div>
-              </div>
-            </section>
-
-            {/* FAQ */}
-            <section id="faq" className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <HelpCircle className="text-blue-600" />
-                Frequently Asked Questions
-              </h2>
-
-              <div className="space-y-4">
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: What is Server-Sent Events (SSE)?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: SSE is a technology that allows servers to push real-time
-                    updates to clients over HTTP. Unlike WebSockets, SSE is
-                    unidirectional (server to client) and works seamlessly with
-                    existing HTTP infrastructure.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: Do I need to poll the API for email status?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: No! That's the beauty of SSE. Once you connect to the
-                    /api/email/events/:id endpoint, you'll receive automatic
-                    updates whenever the email status changes. No polling
-                    required.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: Can I send attachments?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: Attachment support is planned for a future release.
-                    Currently, you can include links to hosted files in your
-                    email HTML.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: How long does the SSE connection stay open?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: The connection stays open until the email reaches a final
-                    state (sent or failed), or until you manually close it. We
-                    recommend closing the connection once you receive the final
-                    status.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: Can multiple clients track the same email?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: Yes! Multiple clients can connect to the same email ID
-                    simultaneously and all will receive real-time updates.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: What happens if my SSE connection drops?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: Implement reconnection logic in your client code. The
-                    EventSource API supports automatic reconnection, or you can
-                    manually reconnect with exponential backoff.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: Is this suitable for marketing emails?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: SMTP-LITE is designed for transactional emails (password
-                    resets, notifications, confirmations). For marketing
-                    campaigns, use a dedicated email marketing platform.
-                  </p>
-                </div>
-
-                <div>
-                  <h3 className="font-semibold text-gray-900 mb-2">
-                    Q: How do I customize the sender email?
-                  </h3>
-                  <p className="text-gray-700 text-sm">
-                    A: The sender email is configured in your account settings.
-                    Visit the API Keys page to manage your sender configuration.
-                  </p>
                 </div>
               </div>
             </section>
@@ -1154,126 +1370,87 @@ print('✅ Tracking complete')`,
             {/* Architecture Overview */}
             <section
               id="architecture"
-              className="bg-white rounded-lg shadow p-6"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
             >
-              <h2 className="text-2xl font-bold mb-4 flex items-center gap-2">
-                <Code className="text-blue-600" />
+              <h2
+                className="text-2xl font-bold mb-6 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Code style={{ color: primary.color }} />
                 System Architecture
               </h2>
 
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg p-6 mb-4">
-                <h3 className="font-semibold text-gray-900 mb-4">
+              <div
+                className="rounded-lg p-6 mb-6"
+                style={{
+                  backgroundColor: muted.color,
+                  color: mutedForeground.color,
+                }}
+              >
+                <h3
+                  className="font-semibold mb-4"
+                  style={{ color: foreground.color }}
+                >
                   How SMTP-LITE Works
                 </h3>
-                <div className="space-y-3 text-sm text-gray-700">
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      1
+
+                <div className="space-y-3 text-sm">
+                  {[
+                    "Email Queued: Your request is validated and stored in MongoDB with status 'pending'",
+                    "Event Emitted: Backend EventEmitter broadcasts the queue event",
+                    "Worker Processes: Background worker picks up the email and changes status to 'sending'",
+                    "SMTP Delivery: Email sent via Nodemailer through configured SMTP server",
+                    "Real-Time Updates: Each status change emits an SSE event to all connected clients",
+                  ].map((step, index) => (
+                    <div key={index} className="flex items-start gap-3">
+                      <div
+                        className="rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold"
+                        style={{
+                          backgroundColor:
+                            index === 5 ? "#16a34a" : primary.color,
+                          color: card.color,
+                        }}
+                      >
+                        {index === 5 ? "✓" : index + 1}
+                      </div>
+                      <div>{step}</div>
                     </div>
-                    <div>
-                      <strong>Email Queued:</strong> Your request is validated
-                      and stored in MongoDB with status "pending"
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      2
-                    </div>
-                    <div>
-                      <strong>Event Emitted:</strong> Backend EventEmitter
-                      broadcasts the queue event
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      3
-                    </div>
-                    <div>
-                      <strong>Worker Processes:</strong> Background worker picks
-                      up the email and changes status to "sending"
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      4
-                    </div>
-                    <div>
-                      <strong>SMTP Delivery:</strong> Email sent via Nodemailer
-                      through configured SMTP server
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-blue-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      5
-                    </div>
-                    <div>
-                      <strong>Real-Time Updates:</strong> Each status change
-                      emits an SSE event to all connected clients
-                    </div>
-                  </div>
-                  <div className="flex items-start gap-3">
-                    <div className="bg-green-600 text-white rounded-full w-6 h-6 flex items-center justify-center flex-shrink-0 font-bold">
-                      ✓
-                    </div>
-                    <div>
-                      <strong>Final State:</strong> Status becomes "sent" or
-                      "failed", clients close SSE connection
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
-                <h4 className="font-semibold text-gray-900 mb-2">
+              {/* Key Technologies */}
+              <div className="rounded-lg p-4">
+                <h4
+                  className="font-semibold mb-3"
+                  style={{ color: foreground.color }}
+                >
                   Key Technologies
                 </h4>
-                <ul className="grid grid-cols-2 gap-2 text-sm text-gray-700">
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> Node.js + Express
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> MongoDB
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> Nodemailer
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> EventEmitter
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> Server-Sent Events
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <span className="text-green-600">✓</span> REST API
-                  </li>
+
+                <ul className="grid grid-cols-2 gap-2 text-sm">
+                  {[
+                    "Node.js + Express",
+                    "MongoDB",
+                    "Nodemailer",
+                    "EventEmitter",
+                    "Server-Sent Events",
+                    "REST API",
+                  ].map((tech, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <span style={{ color: "#16a34a" }}>✓</span> {tech}
+                    </li>
+                  ))}
                 </ul>
               </div>
             </section>
           </article>
         </main>
-
-        {/* Footer */}
-        <footer className="mt-12 pt-8 border-t border-gray-200 text-center text-sm text-gray-500">
-          <p>
-            © {new Date().getFullYear()} SMTP‑LITE — Built with{" "}
-            <span className="text-red-500">❤️</span> for developers
-          </p>
-          <p className="mt-2">
-            Need help? Contact{" "}
-            <span className="text-blue-600">support@smtp-lite.vercel.app</span>
-          </p>
-          <div className="mt-4 flex justify-center gap-4 text-xs">
-            <Link to="/privacy" className="hover:text-gray-700">
-              Privacy Policy
-            </Link>
-            <Link to="/terms" className="hover:text-gray-700">
-              Terms of Service
-            </Link>
-            <Link to="/status" className="hover:text-gray-700">
-              System Status
-            </Link>
-          </div>
-        </footer>
       </div>
     </div>
   );
