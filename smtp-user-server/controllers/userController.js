@@ -1,9 +1,11 @@
 import User from "../models/User.js";
 import ApiKey from "../models/ApiKey.js";
+import AppCredential from "../models/AppCredential.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import axios from "axios";
+import { encrypt, decrypt } from "../utils/encryption.util.js";
 
 // Helper: Send token in cookie
 const sendTokenResponse = (user, res) => {
@@ -202,16 +204,33 @@ export const logoutUser = (req, res) => {
 export const createApiKey = async (req, res) => {
   try {
     const { name } = req.body;
-    if (!req.user || !req.user._id)
-      return res.status(401).json({ message: "Not authenticated" });
+
+    const userHasAppCredentials = await AppCredential.findOne({
+      createdBy: req.user._id,
+    });
+
+    if (!userHasAppCredentials) {
+      return res.status(403).json({
+        message:
+          "You must set up your App Credentials before creating an API Key.",
+      });
+    }
+
+    if (!name || !name.trim()) {
+      return res.status(400).json({ message: "API key name is required." });
+    }
 
     const key = ApiKey.generateKey();
-    const apiKey = new ApiKey({ user: req.user._id, key, name });
+    const apiKey = new ApiKey({
+      user: req.user._id,
+      key,
+      name: name.trim(),
+    });
 
     await apiKey.save();
 
     res.status(201).json({
-      message: "API Key created successfully",
+      message: "API Key created successfully.",
       apiKey,
     });
   } catch (err) {
@@ -290,5 +309,161 @@ export const toggleApiKeyStatus = async (req, res) => {
   } catch (err) {
     console.error("Toggle API Key Error:", err);
     res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
+// APP credentails
+export const createAppCredentials = async (req, res) => {
+  try {
+    const { appName, appPassword, appUserEmail } = req.body;
+
+    if (!appName || !appPassword || !appUserEmail) {
+      return res.status(400).json({
+        message: "All fields (appName, appPassword, appUserEmail) are required",
+      });
+    }
+
+    const passwordPattern = /^[a-z]{4}\s[a-z]{4}\s[a-z]{4}\s[a-z]{4}$/;
+    if (!passwordPattern.test(appPassword)) {
+      return res.status(400).json({
+        message:
+          "Invalid appPassword format. It must look like: 'njip ayoi ytgr vlam' (4 groups of 4 lowercase letters separated by spaces).",
+      });
+    }
+
+    const existingApp = await AppCredential.findOne({
+      createdBy: req.user._id,
+    });
+    if (existingApp) {
+      return res.status(400).json({
+        message:
+          "You have already created app credentials. Multiple credentials are not allowed.",
+      });
+    }
+
+    const encryptedPassword = encrypt(appPassword);
+
+    const appCredentials = new AppCredential({
+      createdBy: req.user._id,
+      appName,
+      appPassword: encryptedPassword,
+      appUserEmail,
+    });
+
+    await appCredentials.save();
+
+    return res.status(201).json({
+      message: "App credentials created successfully",
+      data: {
+        _id: appCredentials._id,
+        appName: appCredentials.appName,
+        appUserEmail: appCredentials.appUserEmail,
+        createdAt: appCredentials.createdAt,
+      },
+    });
+  } catch (error) {
+    console.error("Create App Credentials Error:", error);
+    return res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
+export const listAppCredentials = async (req, res) => {
+  try {
+    const credentials = await AppCredential.findOne({
+      createdBy: req.user._id,
+    }).select("+appPassword");
+
+    if (!credentials)
+      return res.status(404).json({ message: "No credentials found" });
+
+    return res.status(200).json({
+      _id: credentials._id,
+      appName: credentials.appName,
+      appUserEmail: credentials.appUserEmail,
+      appPassword: credentials.appPassword,
+      createdAt: credentials.createdAt,
+      updatedAt: credentials.updatedAt,
+    });
+  } catch (error) {
+    console.error("Toggle API Key Error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
+export const deleteAppCredentials = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    if (!req.user || !req.user._id) {
+      return res.status(401).json({ message: "Not authenticated" });
+    }
+
+    const appCredentialDetails = await AppCredential.findOneAndDelete({
+      _id: id,
+      createdBy: req.user._id,
+    });
+
+    if (!appCredentialDetails) {
+      return res.status(404).json({
+        message: "App Credentials not found or not owned by you.",
+      });
+    }
+
+    const deletedApiKeys = await ApiKey.deleteMany({ user: req.user._id });
+
+    console.log(
+      `Deleted ${deletedApiKeys.deletedCount} API keys for user ${req.user._id}`
+    );
+
+    return res.status(200).json({
+      message:
+        "App Credentials and all associated API keys deleted successfully.",
+    });
+  } catch (error) {
+    console.error("Delete App Credentials Error:", error);
+    return res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
+export const viewDecryptedAppCredential = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const appCredential = await AppCredential.findById(id).select(
+      "+appPassword createdBy"
+    );
+
+    if (!appCredential) {
+      return res.status(404).json({ message: "App credentials not found" });
+    }
+
+    if (appCredential.createdBy.toString() !== req.user._id.toString()) {
+      return res.status(403).json({
+        message: "Access denied. You are not the owner of this credential.",
+      });
+    }
+
+    // Attempt to decrypt
+    let decryptedPassword;
+    try {
+      decryptedPassword = decrypt(appCredential.appPassword);
+    } catch (err) {
+      console.error("Decryption error:", err);
+      return res
+        .status(500)
+        .json({ message: "Failed to decrypt app password" });
+    }
+
+    return res.status(200).json({
+      _id: appCredential._id,
+      appName: appCredential.appName,
+      appUserEmail: appCredential.appUserEmail,
+      decryptedAppPassword: decryptedPassword,
+      createdAt: appCredential.createdAt,
+      updatedAt: appCredential.updatedAt,
+    });
+  } catch (error) {
+    console.error("View Decrypted Credential Error:", error);
+    return res.status(500).json({ message: "Server error: " + error.message });
   }
 };

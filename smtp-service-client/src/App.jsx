@@ -14,6 +14,7 @@ import Documentations from "./pages/Documentations";
 import CheckColor from "./pages/CheckColor";
 import Footer from "./components/Footer";
 import { useThemeStyles } from "./utils/useThemeStyles";
+import AppCredentials from "./pages/AppCredentials";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -40,6 +41,7 @@ const App = () => {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/apikeys" element={<ApiKeys />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/app-credentials" element={<AppCredentials />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />

@@ -17,6 +17,11 @@ const emailSchema = new mongoose.Schema({
   attempts: { type: Number, default: 0 },
   lastError: { type: String, default: "" },
   nextAttemptAt: { type: Date, default: Date.now },
+  type: {
+    type: String,
+    required: false,
+    trim: true,
+  },
 
   meta: { type: Object, default: {} }, // arbitrary metadata
   createdAt: { type: Date, default: Date.now },

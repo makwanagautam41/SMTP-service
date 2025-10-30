@@ -7,13 +7,16 @@ import { BrowserRouter } from "react-router-dom";
 import { AuthProvider } from "./context/AuthContext";
 import { ApiKeyProvider } from "./context/ApiKeyContext";
 import { ThemeProvider } from "./context/ThemeContext";
+import { AppCredentialsProvider } from "./context/AppCredentialsContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <AuthProvider>
       <ApiKeyProvider>
         <ThemeProvider>
-          <App />
+          <AppCredentialsProvider>
+            <App />
+          </AppCredentialsProvider>
         </ThemeProvider>
       </ApiKeyProvider>
     </AuthProvider>

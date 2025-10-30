@@ -1,106 +1,24 @@
-// import nodemailer from "nodemailer";
-// import Email from "../models/Email.js";
-// import { info, error } from "../utils/logger.js";
-// import { emitEmailEvent } from "../routes/emailEventsRoutes.js";
-
-// export function startWorker(env) {
-//   const POLL_INTERVAL = Number(env.WORKER_INTERVAL_MS || 3000);
-//   const BATCH_SIZE = Number(env.WORKER_BATCH_SIZE || 5);
-
-//   async function processQueue() {
-//     try {
-//       const emails = await Email.find({
-//         status: "pending",
-//         nextAttemptAt: { $lte: new Date() },
-//       })
-//         .sort({ createdAt: 1 })
-//         .limit(BATCH_SIZE);
-
-//       if (!emails.length) return;
-
-//       info(`⚙️ Found ${emails.length} pending emails.`);
-
-//       for (const email of emails) {
-//         const claimed = await Email.findOneAndUpdate(
-//           { _id: email._id, status: "pending" },
-//           { $set: { status: "sending" } },
-//           { new: true }
-//         );
-
-//         if (!claimed) continue;
-
-//         emitEmailEvent(claimed._id.toString(), "sending"); // 👈 notify client
-
-//         try {
-//           const transporter = nodemailer.createTransport({
-//             host: env.SMTP_RELAY_HOST || "smtp.gmail.com",
-//             port: env.SMTP_RELAY_PORT ? Number(env.SMTP_RELAY_PORT) : 587,
-//             secure: false,
-//             requireTLS: true,
-//             auth: {
-//               user: env.SMTP_RELAY_USER,
-//               pass: env.SMTP_RELAY_PASS,
-//             },
-//             tls: { rejectUnauthorized: false },
-//           });
-
-//           await transporter.sendMail({
-//             from: claimed.from,
-//             to: claimed.to,
-//             subject: claimed.subject,
-//             text: claimed.text,
-//             html: claimed.html,
-//           });
-
-//           await Email.updateOne(
-//             { _id: claimed._id },
-//             {
-//               $set: { status: "sent", lastError: "", nextAttemptAt: null },
-//               $inc: { attempts: 1 },
-//             }
-//           );
-
-//           emitEmailEvent(claimed._id.toString(), "sent"); // 👈 notify success
-//           info(`✅ Email sent successfully: ${claimed._id}`);
-//         } catch (err) {
-//           await Email.updateOne(
-//             { _id: claimed._id },
-//             {
-//               $set: {
-//                 status: "failed",
-//                 lastError: err.message,
-//                 nextAttemptAt: new Date(Date.now() + 30 * 1000),
-//               },
-//               $inc: { attempts: 1 },
-//             }
-//           );
-
-//           emitEmailEvent(claimed._id.toString(), "failed"); // 👈 notify failure
-//           error(`❌ Failed to send email ${claimed._id}: ${err.message}`);
-//         }
-//       }
-//     } catch (err) {
-//       error(`Worker batch error: ${err.message}`);
-//     }
-//   }
-
-//   info(
-//     `🚀 Worker started (poll every ${POLL_INTERVAL}ms, batch size ${BATCH_SIZE})`
-//   );
-//   setInterval(processQueue, POLL_INTERVAL);
-// }
-
-// workers/emailWorker.js
 import nodemailer from "nodemailer";
 import dns from "dns/promises";
 import Email from "../models/Email.js";
+import ApiKey from "../models/ApiKey.js";
+import AppCredential from "../models/AppCredential.js";
+import { decrypt } from "../utils/encryption.util.js";
 import { info, error } from "../utils/logger.js";
 import { emitEmailEvent } from "../routes/emailEventsRoutes.js";
+
+/**
+ * Email types that should use your global SMTP relay credentials
+ */
+const PUBLIC_TYPES = ["register", "forgot-password", "resend-verification"];
 
 export function startWorker(env) {
   const POLL_INTERVAL = Number(env.WORKER_INTERVAL_MS || 3000);
   const BATCH_SIZE = Number(env.WORKER_BATCH_SIZE || 5);
 
+  /**
+   * Validate recipient's domain MX record
+   */
   async function validateEmailDomain(to) {
     try {
       const domain = to.split("@")[1];
@@ -112,6 +30,9 @@ export function startWorker(env) {
     }
   }
 
+  /**
+   * Main background worker loop
+   */
   async function processQueue() {
     try {
       const emails = await Email.find({
@@ -122,22 +43,21 @@ export function startWorker(env) {
         .limit(BATCH_SIZE);
 
       if (!emails.length) return;
-
       info(`⚙️ Found ${emails.length} pending emails.`);
 
       for (const email of emails) {
+        // Lock email to avoid double sending
         const claimed = await Email.findOneAndUpdate(
           { _id: email._id, status: "pending" },
           { $set: { status: "sending" } },
           { new: true }
         );
-
         if (!claimed) continue;
 
         emitEmailEvent(claimed._id.toString(), "sending");
 
         try {
-          // 🧠 1️⃣ Validate email domain before sending
+          // 🧠 Step 1: Validate domain
           const isValidDomain = await validateEmailDomain(claimed.to);
           if (!isValidDomain) {
             const errorMsg = "Domain not found or has no MX records";
@@ -152,37 +72,82 @@ export function startWorker(env) {
                 $inc: { attempts: 1 },
               }
             );
-
             emitEmailEvent(claimed._id.toString(), {
               status: "failed",
               error: errorMsg,
             });
-
             error(`❌ Invalid domain for ${claimed.to}: ${errorMsg}`);
-            continue; // Skip sending
+            continue;
           }
 
-          // 2️⃣ Proceed with normal sending
-          const transporter = nodemailer.createTransport({
-            host: env.SMTP_RELAY_HOST || "smtp.gmail.com",
-            port: env.SMTP_RELAY_PORT ? Number(env.SMTP_RELAY_PORT) : 587,
-            secure: false,
-            requireTLS: true,
-            auth: {
-              user: env.SMTP_RELAY_USER,
-              pass: env.SMTP_RELAY_PASS,
-            },
-            tls: { rejectUnauthorized: false },
-          });
+          // 🧠 Step 2: Determine email type
+          const isPublicType = PUBLIC_TYPES.includes(claimed.type);
 
+          let transporterConfig;
+          let senderEmail;
+
+          if (isPublicType) {
+            // 🌐 Public: Use your global SMTP_RELAY credentials
+            transporterConfig = {
+              host: "smtp.gmail.com",
+              port: 587,
+              secure: false,
+              requireTLS: true,
+              auth: {
+                user: env.SMTP_RELAY_USER,
+                pass: env.SMTP_RELAY_PASS,
+              },
+              tls: { rejectUnauthorized: false },
+            };
+            senderEmail = env.SMTP_RELAY_USER;
+
+            info(`📤 Using PUBLIC SMTP for ${claimed.type} → ${claimed.to}`);
+          } else {
+            // 🔐 Private: Use user's app credentials
+            const apiKey = await ApiKey.findById(claimed.apiKey);
+            if (!apiKey || !apiKey.user) {
+              throw new Error("API key not found or invalid");
+            }
+
+            const appCredential = await AppCredential.findOne({
+              createdBy: apiKey.user,
+            }).select("+appPassword");
+
+            if (!appCredential) {
+              throw new Error("User has no app credentials configured");
+            }
+
+            const decryptedAppPassword = decrypt(appCredential.appPassword);
+
+            transporterConfig = {
+              host: "smtp.gmail.com",
+              port: 587,
+              secure: false,
+              requireTLS: true,
+              auth: {
+                user: appCredential.appUserEmail,
+                pass: decryptedAppPassword,
+              },
+              tls: { rejectUnauthorized: false },
+            };
+            senderEmail = appCredential.appUserEmail;
+
+            info(`📧 Using USER SMTP for ${claimed.to}`);
+          }
+
+          // 🧠 Step 3: Create transporter
+          const transporter = nodemailer.createTransport(transporterConfig);
+
+          // 🧠 Step 4: Send email
           await transporter.sendMail({
-            from: claimed.from,
+            from: claimed.from || senderEmail,
             to: claimed.to,
             subject: claimed.subject,
             text: claimed.text,
             html: claimed.html,
           });
 
+          // 🧠 Step 5: Mark as sent
           await Email.updateOne(
             { _id: claimed._id },
             {
@@ -202,7 +167,7 @@ export function startWorker(env) {
               $set: {
                 status: "failed",
                 lastError: errorMsg,
-                nextAttemptAt: new Date(Date.now() + 30 * 1000),
+                nextAttemptAt: new Date(Date.now() + 30 * 1000), // retry later
               },
               $inc: { attempts: 1 },
             }
@@ -222,7 +187,7 @@ export function startWorker(env) {
   }
 
   info(
-    `🚀 Worker started (poll every ${POLL_INTERVAL}ms, batch size ${BATCH_SIZE})`
+    `🚀 Email Worker started (poll every ${POLL_INTERVAL}ms, batch size ${BATCH_SIZE})`
   );
   setInterval(processQueue, POLL_INTERVAL);
 }

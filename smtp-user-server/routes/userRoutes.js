@@ -9,6 +9,10 @@ import {
   deleteApiKey,
   listApiKeys,
   toggleApiKeyStatus,
+  createAppCredentials,
+  listAppCredentials,
+  deleteAppCredentials,
+  viewDecryptedAppCredential,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -29,5 +33,11 @@ router.post("/create-api-key", createApiKey);
 router.get("/api-keys", listApiKeys);
 router.delete("/:id", deleteApiKey);
 router.patch("/:id/toggle", protect, toggleApiKeyStatus);
+
+// app pass and user for SMTP
+router.post("/app/create-credentials", createAppCredentials);
+router.get("/app/credentials", listAppCredentials);
+router.get("/app/credentials/:id/decrypted", viewDecryptedAppCredential);
+router.delete("/app/:id", deleteAppCredentials);
 
 export default router;
