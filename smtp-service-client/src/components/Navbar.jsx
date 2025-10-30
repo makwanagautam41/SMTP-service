@@ -54,6 +54,7 @@ const Navbar = () => {
   const privateLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "API Keys", href: "/apikeys", icon: KeyRound },
+    { name: "APP Credentials", href: "/app-credentials", icon: User },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
