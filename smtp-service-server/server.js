@@ -6,7 +6,6 @@ import emailRoutes from "./routes/emailRoutes.js";
 import { startWorker } from "./workers/emailWorker.js";
 import startSmtpServer from "./smtp/smtpServer.js";
 import { info } from "./utils/logger.js";
-import userRoutes from "./routes/userRoutes.js";
 import cookieParser from "cookie-parser";
 import emailEventsRoutes from "./routes/emailEventsRoutes.js";
 
@@ -30,7 +29,6 @@ const API_PREFIX = process.env.API_PREFIX || "/api";
 
 // ✅ API routes
 app.use(`${API_PREFIX}/email`, emailRoutes);
-app.use("/api/users", userRoutes);
 app.use(`${API_PREFIX}/email`, emailEventsRoutes);
 
 (async function bootstrap() {

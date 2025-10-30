@@ -1,4 +1,3 @@
-// middleware/apiKeyAuth.js
 import ApiKey from "../models/ApiKey.js";
 
 const publicTypes = ["register", "forgot-password", "resend-verification"];
