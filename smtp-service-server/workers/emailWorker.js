@@ -104,7 +104,9 @@ export function startWorker(env) {
             info(`📤 Using PUBLIC SMTP for ${claimed.type} → ${claimed.to}`);
           } else {
             // 🔐 Private: Use user's app credentials
-            const apiKey = await ApiKey.findById(claimed.apiKey);
+            const apiKey = await ApiKey.findOne({
+              user: claimed.user,
+            });
             if (!apiKey || !apiKey.user) {
               throw new Error("API key not found or invalid");
             }

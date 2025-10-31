@@ -15,6 +15,7 @@ router.post("/send", apiKeyAuth, async (req, res) => {
   try {
     const { to, subject, text, html, meta, type } = req.body;
     const from = req.fromEmail;
+    const user = req.fromUserId;
     if (!from || !to) {
       return res.status(400).json({ error: "from and to required" });
     }
@@ -26,6 +27,7 @@ router.post("/send", apiKeyAuth, async (req, res) => {
       html,
       meta,
       type,
+      user,
     });
     info("Queued email id:", email._id);
     res.status(201).json({ success: true, id: email._id });

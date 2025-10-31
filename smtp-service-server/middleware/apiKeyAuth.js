@@ -21,13 +21,13 @@ export const apiKeyAuth = async (req, res, next) => {
       "user"
     );
 
-    console.log(key);
     if (!key)
       return res.status(403).json({ error: "Invalid or inactive API key" });
 
     req.apiUser = key.user;
     req.apiKey = key;
     req.fromEmail = key.user.email;
+    req.fromUserId = key.user._id;
 
     next();
   } catch (err) {

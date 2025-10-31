@@ -5,6 +5,7 @@ import { connectDB } from "./config/db.js";
 import emailRoutes from "./routes/emailRoutes.js";
 import { startWorker } from "./workers/emailWorker.js";
 import startSmtpServer from "./smtp/smtpServer.js";
+import "./models/User.js";
 import { info } from "./utils/logger.js";
 import cookieParser from "cookie-parser";
 import emailEventsRoutes from "./routes/emailEventsRoutes.js";
