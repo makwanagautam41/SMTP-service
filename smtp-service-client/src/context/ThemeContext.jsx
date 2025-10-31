@@ -24,8 +24,12 @@ export const ThemeProvider = ({ children }) => {
   const toggleTheme = () =>
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+
   return (
-    <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <ThemeContext.Provider
+      value={{ theme, toggleTheme, isSearchOpen, setIsSearchOpen }}
+    >
       {children}
     </ThemeContext.Provider>
   );

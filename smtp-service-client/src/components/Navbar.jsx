@@ -12,6 +12,7 @@ import {
   Moon,
   User,
   Home,
+  Search,
 } from "lucide-react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -21,7 +22,7 @@ import logo from "../../public/logo.png";
 
 const Navbar = () => {
   const { user, handleLogout } = useAuth();
-  const { toggleTheme } = useTheme();
+  const { toggleTheme, isSearchOpen, setIsSearchOpen } = useTheme();
   const { theme, ...legacy } = useThemeStyles();
   const location = useLocation();
 
@@ -66,6 +67,9 @@ const Navbar = () => {
 
   const navLinks = user ? [...publicLinks, ...privateLinks] : publicLinks;
 
+  // ✅ Check if current route is /documentations
+  const isDocumentationPage = location.pathname === "/documentations";
+
   return (
     <motion.nav
       initial={{ y: 0 }}
@@ -91,7 +95,7 @@ const Navbar = () => {
               className="w-10 h-10 object-contain"
             />
             <span
-              className="text-2xl font-bold tracking-tight"
+              className="text-2xl font-bold tracking-tight logo-title"
               style={{ color: legacy.primary.color }}
             >
               SMTP-LITE
@@ -118,79 +122,105 @@ const Navbar = () => {
             ))}
           </div>
 
-          {/* Theme Toggle */}
-          <button
-            onClick={toggleTheme}
-            className="p-2 rounded-full transition-all duration-300"
-            style={{
-              backgroundColor: legacy.secondary.color,
-              color: legacy.secondaryForeground.color,
-            }}
-            aria-label="Toggle Theme"
-          >
-            {theme === "light" ? <Moon size={22} /> : <Sun size={22} />}
-          </button>
-
-          {/* Desktop Auth */}
-          <div className="hidden md:flex md:items-center md:space-x-4">
-            {user ? (
-              <>
-                <span
-                  className="font-medium"
-                  style={{ color: legacy.foreground.color }}
-                >
-                  Hi, {user.name}
-                </span>
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg"
-                  style={{
-                    backgroundColor: legacy.primary.color,
-                    color: legacy.primaryForeground.color,
-                    border: `1px solid ${legacy.border.color}`,
-                  }}
-                >
-                  <LogOut size={18} />
-                  <span>Logout</span>
-                </button>
-              </>
-            ) : (
-              <>
-                <Link
-                  to="/login"
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300"
-                  style={{
-                    color: legacy.foreground.color,
-                    border: `1px solid ${legacy.border.color}`,
-                  }}
-                >
-                  <LogIn size={18} />
-                  <span>Login</span>
-                </Link>
-                <Link
-                  to="/register"
-                  className="flex items-center space-x-2 px-4 py-2 rounded-lg"
-                  style={{
-                    backgroundColor: legacy.primary.color,
-                    color: legacy.primaryForeground.color,
-                  }}
-                >
-                  <UserPlus size={18} />
-                  <span>Register</span>
-                </Link>
-              </>
-            )}
-          </div>
-
-          {/* Mobile Menu Toggle */}
-          <div className="md:hidden">
+          {/* Right side controls */}
+          <div className="flex items-center gap-2">
+            {/* Theme Toggle */}
             <button
-              onClick={toggleMenu}
-              className="focus:outline-none"
-              style={{ color: legacy.foreground.color }}
+              onClick={toggleTheme}
+              className="p-2 rounded-full transition-all duration-300"
+              style={{
+                backgroundColor: legacy.secondary.color,
+                color: legacy.secondaryForeground.color,
+              }}
+              aria-label="Toggle Theme"
             >
-              {isOpen ? <X size={28} /> : <Menu size={28} />}
+              {theme === "light" ? <Moon size={22} /> : <Sun size={22} />}
             </button>
+
+            {/* Search Button - Desktop */}
+            <button
+              onClick={() => setIsSearchOpen(true)}
+              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
+              style={{
+                backgroundColor: legacy.secondary.color,
+                color: legacy.secondaryForeground.color,
+                border: `1px solid ${legacy.border.color}`,
+              }}
+            >
+              <Search size={18} />
+              <span className="text-sm">Search</span>
+              <kbd
+                className="px-2 py-1 rounded text-xs"
+                style={{
+                  backgroundColor: legacy.muted.color,
+                  color: legacy.mutedForeground.color,
+                }}
+              >
+                ⌘K
+              </kbd>
+            </button>
+
+            {/* Desktop Auth */}
+            <div className="hidden md:flex md:items-center md:space-x-4">
+              {user ? (
+                <>
+                  <span
+                    className="font-medium"
+                    style={{ color: legacy.foreground.color }}
+                  >
+                    Hi, {user.name}
+                  </span>
+                  <button
+                    onClick={handleLogout}
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg"
+                    style={{
+                      backgroundColor: legacy.primary.color,
+                      color: legacy.primaryForeground.color,
+                      border: `1px solid ${legacy.border.color}`,
+                    }}
+                  >
+                    <LogOut size={18} />
+                    <span>Logout</span>
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg transition-all duration-300"
+                    style={{
+                      color: legacy.foreground.color,
+                      border: `1px solid ${legacy.border.color}`,
+                    }}
+                  >
+                    <LogIn size={18} />
+                    <span>Login</span>
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="flex items-center space-x-2 px-4 py-2 rounded-lg"
+                    style={{
+                      backgroundColor: legacy.primary.color,
+                      color: legacy.primaryForeground.color,
+                    }}
+                  >
+                    <UserPlus size={18} />
+                    <span>Register</span>
+                  </Link>
+                </>
+              )}
+            </div>
+
+            {/* Mobile Menu Toggle */}
+            <div className="md:hidden mt-2">
+              <button
+                onClick={toggleMenu}
+                className="focus:outline-none"
+                style={{ color: legacy.foreground.color }}
+              >
+                <Menu size={28} />
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -212,7 +242,7 @@ const Navbar = () => {
           >
             <div className="px-4 pt-4 pb-4 space-y-2">
               {/* Header */}
-              <div className="flex justify-between items-center mb-4">
+              <div className="flex justify-around items-center mb-4">
                 <Link
                   to="/"
                   className="flex items-center space-x-2"
@@ -245,7 +275,7 @@ const Navbar = () => {
                   <Link
                     key={link.name}
                     to={link.href}
-                    onClick={() => setIsOpen(false)} // ✅ Close on click
+                    onClick={() => setIsOpen(false)}
                     className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200"
                     style={{
                       color: legacy.foreground.color,
@@ -295,7 +325,7 @@ const Navbar = () => {
                   <>
                     <Link
                       to="/login"
-                      onClick={() => setIsOpen(false)} // ✅ close menu
+                      onClick={() => setIsOpen(false)}
                       className="flex items-center space-x-2 px-4 py-2 rounded-lg"
                       style={{
                         color: legacy.foreground.color,
@@ -307,7 +337,7 @@ const Navbar = () => {
                     </Link>
                     <Link
                       to="/register"
-                      onClick={() => setIsOpen(false)} // ✅ close menu
+                      onClick={() => setIsOpen(false)}
                       className="flex items-center space-x-2 px-4 py-2 rounded-lg"
                       style={{
                         backgroundColor: legacy.primary.color,

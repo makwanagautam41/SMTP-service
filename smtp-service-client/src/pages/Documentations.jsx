@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Link } from "react-router-dom";
 import {
   Copy,
@@ -16,9 +16,13 @@ import {
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import logo from "../../public/logo.png";
+import DocumentationSearch from "../components/DocumentationSearch";
+import { useTheme } from "../context/ThemeContext";
+import ScrollSearchOverlay from "../components/ScrollSearchOverlay";
 
 const Documentations = () => {
   const [copiedCode, setCopiedCode] = useState(null);
+  const { isSearchOpen, setIsSearchOpen } = useTheme();
 
   const copyToClipboard = async (text, id) => {
     try {
@@ -349,6 +353,147 @@ print('✅ Tracking complete')`,
     { id: "responses", icon: <AlertCircle size={16} />, label: "Responses" },
   ];
 
+  const documentationSections = useMemo(
+    () => [
+      {
+        id: "overview",
+        title: "Overview",
+        icon: <HelpCircle size={16} />,
+        description:
+          "SMTP-LITE is an event-driven email API service that provides real-time delivery tracking. Unlike traditional email services that require polling, SMTP-LITE uses Server-Sent Events (SSE) to push status updates instantly to your application.",
+        content: [
+          "Real-time email delivery tracking via SSE",
+          "No polling required – instant status updates",
+          "Simple REST API with JSON payloads",
+          "Works with Node.js, Python, PHP, ASP.NET, and browsers",
+          "Event-driven architecture for scalability",
+        ],
+      },
+      {
+        id: "realtime",
+        title: "Real-Time Tracking System",
+        icon: <Radio size={16} />,
+        description:
+          "SMTP-LITE uses Server-Sent Events (SSE) to provide live email delivery updates without polling.",
+        content: [
+          "Send an email via /api/email/send and receive an email ID",
+          "Connect to /api/email/events/:id using EventSource",
+          "Receive instant status updates as the email moves through stages",
+          "Status progression: pending → sending → sent/failed",
+          "No polling overhead – server pushes updates automatically",
+          "Instant notifications when email status changes",
+          "Native browser support with EventSource API",
+        ],
+      },
+      {
+        id: "app-credentials",
+        title: "App Credentials (SMTP Access)",
+        icon: <Lock size={16} />,
+        description:
+          "To send emails securely using your own Google account, you need to set up App Credentials consisting of your App Name, Google Account Email, and Google App Password.",
+        content: [
+          "Enable 2-Step Verification in your Google account",
+          "Create Google App Password from myaccount.google.com/apppasswords",
+          "Your app password is securely encrypted using AES-256 encryption",
+          "Credentials are only decrypted temporarily when sending emails",
+        ],
+      },
+      {
+        id: "auth",
+        title: "Authentication",
+        icon: <Key size={16} />,
+        description:
+          "All API requests require an API key. Include it in the x-api-key header of every request.",
+        content: [
+          "Get your API key from API Keys Management page",
+          "App Credentials must be added before creating API keys",
+          "Never expose your API key in client-side code",
+          "Use environment variables and make API calls from backend",
+        ],
+      },
+      {
+        id: "send",
+        title: "Send Email API",
+        icon: <Send size={16} />,
+        description:
+          "POST https://smtp-service-server.vercel.app/api/email/send",
+        content: [
+          "Required headers: Content-Type (application/json) and x-api-key",
+          "Request body fields: to (recipient email), subject (email subject), html (email body)",
+          "Returns success response with email ID when queued successfully",
+        ],
+      },
+      {
+        id: "sse",
+        title: "Server-Sent Events (SSE) Endpoint",
+        icon: <Zap size={16} />,
+        description:
+          "GET https://smtp-service-server.vercel.app/api/email/events/:id",
+        content: [
+          "Replace :id with email ID from send endpoint",
+          "Server sends JSON events as email status changes",
+          "Status flow: pending → sending → sent/failed",
+          "Connection closes automatically on final status",
+        ],
+      },
+      {
+        id: "examples",
+        title: "Code Examples",
+        icon: <Code size={16} />,
+        description:
+          "Complete code examples for various programming languages and platforms",
+        subsections: [
+          {
+            title: "PHP Example",
+            content: "Send emails using PHP with file_get_contents",
+          },
+          {
+            title: "ASP.NET (C#) Example",
+            content: "Send emails using HttpClient in C#",
+          },
+          {
+            title: "Node.js with SSE",
+            content: "Real-time email tracking with native HTTP",
+          },
+          {
+            title: "Browser with EventSource",
+            content: "Track emails in browser with EventSource API",
+          },
+          {
+            title: "Python with SSE",
+            content: "Real-time tracking using sseclient-py package",
+          },
+        ],
+      },
+      {
+        id: "responses",
+        title: "API Responses",
+        icon: <AlertCircle size={16} />,
+        description: "Understanding API response codes and formats",
+        content: [
+          "Success Response (200): Email queued successfully with ID",
+          "Error Response (400): Invalid request body or missing fields",
+          "Error Response (401): Invalid or missing API key",
+          "Error Response (404): Email ID not found",
+          "Error Response (500): Server error",
+          "SSE sends real-time status updates: pending, sending, sent, failed",
+        ],
+      },
+    ],
+    []
+  );
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === "k") {
+        e.preventDefault();
+        setIsSearchOpen(true);
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   return (
     <div
       className="min-h-screen text-gray-800"
@@ -357,6 +502,7 @@ print('✅ Tracking complete')`,
         color: foreground.color,
       }}
     >
+      <ScrollSearchOverlay />
       <div className="max-w-6xl mx-auto p-2">
         {/* Header */}
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
@@ -421,7 +567,7 @@ print('✅ Tracking complete')`,
                   <li key={id}>
                     <button
                       onClick={(e) => scrollToSection(e, id)}
-                      className="w-full flex items-center gap-2 py-2 px-3 rounded text-left transition duration-200"
+                      className="w-full cursor-pointer flex items-center gap-2 py-2 px-3 rounded text-left transition duration-200"
                       style={{
                         backgroundColor: "transparent",
                         color: foreground.color,
@@ -1638,6 +1784,11 @@ print('✅ Tracking complete')`,
           </article>
         </main>
       </div>
+      <DocumentationSearch
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+        sections={documentationSections}
+      />
     </div>
   );
 };
