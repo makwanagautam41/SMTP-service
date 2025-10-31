@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
 import {
   fetchApiKeysService,
   createApiKeyService,
@@ -15,57 +14,45 @@ export const ApiKeyProvider = ({ children }) => {
 
   // Fetch API Keys
   const fetchApiKeys = async () => {
-    try {
-      setLoading(true);
-      const { data } = await fetchApiKeysService();
-      setApiKeys(data || []);
-    } catch (err) {
-      console.error("Fetch API Keys Error:", err);
-    } finally {
-      setLoading(false);
+    setLoading(true);
+    const res = await fetchApiKeysService();
+    if (res.success) {
+      setApiKeys(res.data || []);
+    } else {
+      console.error("Failed to fetch API keys:", res.message);
     }
+    setLoading(false);
   };
 
   // Create new API Key
   const createApiKey = async (name) => {
-    try {
-      const res = await createApiKeyService(name);
-      if (res.data?.apiKey) {
-        setApiKeys((prev) => [res.data.apiKey, ...prev]);
-      }
-      return res.data;
-    } catch (err) {
-      console.error("Create API Key Error:", err);
-      return { success: false, message: "Failed to create API key" };
+    const res = await createApiKeyService(name);
+    if (res.success && res.data?.apiKey) {
+      setApiKeys((prev) => [res.data.apiKey, ...prev]);
     }
+    return res; // return standardized { success, message, data }
   };
 
   // Delete API Key
   const deleteApiKey = async (id) => {
-    try {
-      await deleteApiKeyService(id);
+    const res = await deleteApiKeyService(id);
+    if (res.success) {
       setApiKeys((prev) => prev.filter((key) => key._id !== id));
-    } catch (err) {
-      console.error("Delete API Key Error:", err);
     }
+    return res;
   };
 
+  // Toggle API Key
   const toggleApiKey = async (id) => {
-    try {
-      const res = await toggleApiKeyStatusService(id);
-      if (res.success) {
-        // Update the apiKeys state only after server confirms
-        setApiKeys((prev) =>
-          prev.map((key) =>
-            key._id === id ? { ...key, active: !key.active } : key
-          )
-        );
-      }
-      return res;
-    } catch (err) {
-      console.error("Toggle API Key Error:", err);
-      return { success: false, message: "Failed to toggle API key" };
+    const res = await toggleApiKeyStatusService(id);
+    if (res.success && res.data?.apiKey) {
+      setApiKeys((prev) =>
+        prev.map((key) =>
+          key._id === id ? { ...key, active: res.data.apiKey.active } : key
+        )
+      );
     }
+    return res;
   };
 
   useEffect(() => {

@@ -9,12 +9,14 @@ import {
   Check,
   ToggleLeft,
   ToggleRight,
+  AlertTriangle,
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 
 const ApiKeys = () => {
   const { apiKeys, loading, createApiKey, deleteApiKey, toggleApiKey } =
     useApiKeys();
+
   const {
     background,
     card,
@@ -32,14 +34,30 @@ const ApiKeys = () => {
   const [copiedKeyId, setCopiedKeyId] = useState(null);
   const [togglingIds, setTogglingIds] = useState([]);
   const [deletingIds, setDeletingIds] = useState([]);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const handleCreate = async (e) => {
     e.preventDefault();
-    if (!name.trim()) return;
+    setError(null);
+    setSuccess(null);
+
+    if (!name.trim()) {
+      setError("Please enter a name for your API key.");
+      return;
+    }
+
     setCreating(true);
-    await createApiKey(name);
-    setName("");
+    const res = await createApiKey(name);
     setCreating(false);
+
+    if (!res.success) {
+      setError(res.message);
+      return;
+    }
+
+    setSuccess(res.message || "API Key created successfully!");
+    setName("");
   };
 
   const handleCopy = (id, key) => {
@@ -49,25 +67,23 @@ const ApiKeys = () => {
   };
 
   const handleDelete = async (id) => {
+    setError(null);
+    setSuccess(null);
     setDeletingIds((prev) => [...prev, id]);
-    try {
-      await deleteApiKey(id);
-    } catch (err) {
-      console.error("Failed to delete API key:", err);
-    } finally {
-      setDeletingIds((prev) => prev.filter((keyId) => keyId !== id));
-    }
+    const res = await deleteApiKey(id);
+    if (res.success) setSuccess(res.message);
+    else setError(res.message);
+    setDeletingIds((prev) => prev.filter((keyId) => keyId !== id));
   };
 
   const handleToggle = async (id) => {
+    setError(null);
+    setSuccess(null);
     setTogglingIds((prev) => [...prev, id]);
-    try {
-      await toggleApiKey(id);
-    } catch (err) {
-      console.error("Failed to toggle API key:", err);
-    } finally {
-      setTogglingIds((prev) => prev.filter((keyId) => keyId !== id));
-    }
+    const res = await toggleApiKey(id);
+    if (res.success) setSuccess(res.message);
+    else setError(res.message);
+    setTogglingIds((prev) => prev.filter((keyId) => keyId !== id));
   };
 
   return (
@@ -86,6 +102,45 @@ const ApiKeys = () => {
           <KeyRound size={28} />
           Manage API Keys
         </h1>
+
+        {/* ✅ Alerts */}
+        {error && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 flex items-start gap-3 p-4 rounded-lg"
+            style={{
+              backgroundColor: "rgba(239,68,68,0.1)",
+              borderLeft: "4px solid #ef4444",
+              color: "#b91c1c",
+            }}
+          >
+            <AlertTriangle size={20} className="mt-0.5" />
+            <div>
+              <p className="font-semibold">Error</p>
+              <p className="text-sm">{error}</p>
+            </div>
+          </motion.div>
+        )}
+
+        {success && (
+          <motion.div
+            initial={{ opacity: 0, y: -5 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-4 flex items-start gap-3 p-4 rounded-lg"
+            style={{
+              backgroundColor: "rgba(34,197,94,0.1)",
+              borderLeft: "4px solid #16a34a",
+              color: "#166534",
+            }}
+          >
+            <Check size={20} className="mt-0.5" />
+            <div>
+              <p className="font-semibold">Success</p>
+              <p className="text-sm">{success}</p>
+            </div>
+          </motion.div>
+        )}
 
         {/* Create New Key */}
         <form
@@ -114,12 +169,6 @@ const ApiKeys = () => {
               opacity: creating ? 0.8 : 1,
               cursor: creating ? "not-allowed" : "pointer",
             }}
-            onMouseEnter={(e) =>
-              (e.target.style.backgroundColor = hover.primary)
-            }
-            onMouseLeave={(e) =>
-              (e.target.style.backgroundColor = primary.color)
-            }
           >
             {creating ? (
               <Loader2 className="animate-spin" size={20} />
@@ -192,12 +241,12 @@ const ApiKeys = () => {
                   </div>
 
                   <div className="flex justify-end gap-3 mt-3">
-                    {/* Toggle Active/Inactive */}
+                    {/* Toggle */}
                     <motion.button
                       onClick={() => handleToggle(keyObj._id)}
+                      disabled={isToggling}
                       className="flex items-center gap-1 px-3 py-1 rounded-lg text-sm font-medium transition"
                       whileTap={{ scale: 0.9 }}
-                      disabled={isToggling}
                       style={{
                         backgroundColor: keyObj.active
                           ? "rgba(34,197,94,1)"
@@ -218,17 +267,11 @@ const ApiKeys = () => {
                       )}
                     </motion.button>
 
-                    {/* Copy Button */}
+                    {/* Copy */}
                     <button
                       onClick={() => handleCopy(keyObj._id, keyObj.key)}
                       className="transition"
                       style={{ color: primary.color }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = hover.primary)
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = primary.color)
-                      }
                     >
                       {copiedKeyId === keyObj._id ? (
                         <Check size={18} className="text-green-500" />
@@ -237,18 +280,12 @@ const ApiKeys = () => {
                       )}
                     </button>
 
-                    {/* Delete Button */}
+                    {/* Delete */}
                     <button
                       onClick={() => handleDelete(keyObj._id)}
                       disabled={isDeleting}
                       className="transition"
                       style={{ color: "#ef4444" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = "#dc2626")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = "#ef4444")
-                      }
                     >
                       {isDeleting ? (
                         <Loader2 className="animate-spin" size={18} />

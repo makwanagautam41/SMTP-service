@@ -2,19 +2,27 @@ import API from "./api";
 
 const handleRequest = async (axiosPromise) => {
   try {
-    const { data } = await axiosPromise;
-    return { success: true, data };
+    const res = await axiosPromise;
+    return {
+      success: true,
+      data: res.data,
+      message: res.data?.message || "Success",
+    };
   } catch (err) {
     console.error("API request error:", err);
 
-    // Normalize backend error messages
     const message =
       err.response?.data?.message ||
       err.response?.data?.error ||
       err.message ||
       "Something went wrong";
 
-    return { success: false, message };
+    return {
+      success: false,
+      data: null,
+      message,
+      status: err.response?.status || 500,
+    };
   }
 };
 

@@ -28,6 +28,7 @@ export const AppCredentialsProvider = ({ children }) => {
     try {
       const res = await createAppCredentialsService(formData);
       if (res.data) setAppCredentials(res.data);
+      await fetchAppCredentials();
       return res;
     } catch (err) {
       console.error("Create App Credentials Error:", err);
