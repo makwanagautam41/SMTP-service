@@ -13,7 +13,7 @@ import emailEventsRoutes from "./routes/emailEventsRoutes.js";
 dotenv.config();
 const app = express();
 
-// ✅ Allow all origins for CORS
+// Allow all origins for CORS
 app.use(
   cors({
     origin: "*", // allow all domains
@@ -28,7 +28,7 @@ app.use(cookieParser());
 const PORT = process.env.PORT || 5000;
 const API_PREFIX = process.env.API_PREFIX || "/api";
 
-// ✅ API routes
+// API routes
 app.use(`${API_PREFIX}/email`, emailRoutes);
 app.use(`${API_PREFIX}/email`, emailEventsRoutes);
 

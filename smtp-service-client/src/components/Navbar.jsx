@@ -138,27 +138,29 @@ const Navbar = () => {
             </button>
 
             {/* Search Button - Desktop */}
-            <button
-              onClick={() => setIsSearchOpen(true)}
-              className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
-              style={{
-                backgroundColor: legacy.secondary.color,
-                color: legacy.secondaryForeground.color,
-                border: `1px solid ${legacy.border.color}`,
-              }}
-            >
-              <Search size={18} />
-              <span className="text-sm">Search</span>
-              <kbd
-                className="px-2 py-1 rounded text-xs"
+            {location.pathname === "/documentations" && (
+              <button
+                onClick={() => setIsSearchOpen(true)}
+                className="hidden md:flex items-center gap-2 px-4 py-2 rounded-lg transition-all duration-300"
                 style={{
-                  backgroundColor: legacy.muted.color,
-                  color: legacy.mutedForeground.color,
+                  backgroundColor: legacy.secondary.color,
+                  color: legacy.secondaryForeground.color,
+                  border: `1px solid ${legacy.border.color}`,
                 }}
               >
-                ⌘K
-              </kbd>
-            </button>
+                <Search size={18} />
+                <span className="text-sm">Search</span>
+                <kbd
+                  className="px-2 py-1 rounded text-xs"
+                  style={{
+                    backgroundColor: legacy.muted.color,
+                    color: legacy.mutedForeground.color,
+                  }}
+                >
+                  ⌘K
+                </kbd>
+              </button>
+            )}
 
             {/* Desktop Auth */}
             <div className="hidden md:flex md:items-center md:space-x-4">

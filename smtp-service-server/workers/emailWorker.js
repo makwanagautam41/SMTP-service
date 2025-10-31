@@ -57,7 +57,7 @@ export function startWorker(env) {
         emitEmailEvent(claimed._id.toString(), "sending");
 
         try {
-          // 🧠 Step 1: Validate domain
+          // Step 1: Validate domain
           const isValidDomain = await validateEmailDomain(claimed.to);
           if (!isValidDomain) {
             const errorMsg = "Domain not found or has no MX records";
@@ -80,14 +80,14 @@ export function startWorker(env) {
             continue;
           }
 
-          // 🧠 Step 2: Determine email type
+          // Step 2: Determine email type
           const isPublicType = PUBLIC_TYPES.includes(claimed.type);
 
           let transporterConfig;
           let senderEmail;
 
           if (isPublicType) {
-            // 🌐 Public: Use your global SMTP_RELAY credentials
+            // Public: Use your global SMTP_RELAY credentials
             transporterConfig = {
               host: "smtp.gmail.com",
               port: 587,
@@ -103,7 +103,7 @@ export function startWorker(env) {
 
             info(`📤 Using PUBLIC SMTP for ${claimed.type} → ${claimed.to}`);
           } else {
-            // 🔐 Private: Use user's app credentials
+            // Private: Use user's app credentials
             const apiKey = await ApiKey.findOne({
               user: claimed.user,
             });
@@ -137,10 +137,10 @@ export function startWorker(env) {
             info(`📧 Using USER SMTP for ${claimed.to}`);
           }
 
-          // 🧠 Step 3: Create transporter
+          // Step 3: Create transporter
           const transporter = nodemailer.createTransport(transporterConfig);
 
-          // 🧠 Step 4: Send email
+          // Step 4: Send email
           await transporter.sendMail({
             from: claimed.from || senderEmail,
             to: claimed.to,
@@ -149,7 +149,7 @@ export function startWorker(env) {
             html: claimed.html,
           });
 
-          // 🧠 Step 5: Mark as sent
+          // Step 5: Mark as sent
           await Email.updateOne(
             { _id: claimed._id },
             {
