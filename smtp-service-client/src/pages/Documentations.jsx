@@ -15,6 +15,7 @@ import {
   Lock,
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
+import logo from "../../public/logo.png";
 
 const Documentations = () => {
   const [copiedCode, setCopiedCode] = useState(null);
@@ -361,7 +362,11 @@ print('✅ Tracking complete')`,
         <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <Mail className="text-blue-600" size={32} />
+              <img
+                src={logo}
+                alt="SMTP-LITE Logo"
+                className="w-10 h-10 object-contain"
+              />
               <h1 className="text-3xl font-bold">
                 SMTP‑LITE API Documentation
               </h1>

@@ -251,7 +251,7 @@ const Index = () => {
               </div>
 
               <div
-                className="absolute -bottom-4 -right-4 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
+                className="absolute -bottom-4 -right-0 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
                 style={{
                   backgroundColor: primary.color,
                   color: primaryForeground.color,
