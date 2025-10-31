@@ -242,7 +242,7 @@ const Navbar = () => {
           >
             <div className="px-4 pt-4 pb-4 space-y-2">
               {/* Header */}
-              <div className="flex justify-around items-center mb-4">
+              <div className="flex justify-between items-center mb-4">
                 <Link
                   to="/"
                   className="flex items-center space-x-2"
