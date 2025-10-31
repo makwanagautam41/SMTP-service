@@ -13,7 +13,7 @@ import {
   User,
   Home,
 } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
@@ -23,11 +23,18 @@ const Navbar = () => {
   const { user, handleLogout } = useAuth();
   const { toggleTheme } = useTheme();
   const { theme, ...legacy } = useThemeStyles();
+  const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
 
+  // ✅ Close menu automatically when route changes
+  useEffect(() => {
+    setIsOpen(false);
+  }, [location]);
+
+  // Handle scroll hiding
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY;
@@ -44,11 +51,10 @@ const Navbar = () => {
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, isOpen]);
 
-  const toggleMenu = () => setIsOpen(!isOpen);
+  const toggleMenu = () => setIsOpen((prev) => !prev);
 
   const publicLinks = [
     { name: "Documentations", href: "/documentations", icon: Home },
-    { name: "Services", href: "/services", icon: LayoutDashboard },
   ];
 
   const privateLinks = [
@@ -157,12 +163,6 @@ const Navbar = () => {
                     color: legacy.foreground.color,
                     border: `1px solid ${legacy.border.color}`,
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.color = legacy.primary.color)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.color = legacy.foreground.color)
-                  }
                 >
                   <LogIn size={18} />
                   <span>Login</span>
@@ -174,14 +174,6 @@ const Navbar = () => {
                     backgroundColor: legacy.primary.color,
                     color: legacy.primaryForeground.color,
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      legacy.hover?.primary || legacy.primary.color)
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor =
-                      legacy.primary.color)
-                  }
                 >
                   <UserPlus size={18} />
                   <span>Register</span>
@@ -253,7 +245,7 @@ const Navbar = () => {
                   <Link
                     key={link.name}
                     to={link.href}
-                    onClick={() => setIsOpen(false)}
+                    onClick={() => setIsOpen(false)} // ✅ Close on click
                     className="flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors duration-200"
                     style={{
                       color: legacy.foreground.color,
@@ -303,6 +295,7 @@ const Navbar = () => {
                   <>
                     <Link
                       to="/login"
+                      onClick={() => setIsOpen(false)} // ✅ close menu
                       className="flex items-center space-x-2 px-4 py-2 rounded-lg"
                       style={{
                         color: legacy.foreground.color,
@@ -314,6 +307,7 @@ const Navbar = () => {
                     </Link>
                     <Link
                       to="/register"
+                      onClick={() => setIsOpen(false)} // ✅ close menu
                       className="flex items-center space-x-2 px-4 py-2 rounded-lg"
                       style={{
                         backgroundColor: legacy.primary.color,

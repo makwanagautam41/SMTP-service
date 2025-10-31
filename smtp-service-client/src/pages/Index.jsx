@@ -141,7 +141,7 @@ const Index = () => {
     >
       {/* Hero Section */}
       <section className="relative overflow-hidden">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 md:py-24">
+        <div className="container mx-auto max-w-7xl p-2 py-16 md:py-24">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
             {/* Text content */}
             <div className="flex flex-col">
@@ -266,7 +266,7 @@ const Index = () => {
 
       {/* Features Section */}
       <section className="py-16 md:py-20">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-7xl p-2">
           <div className="text-center mb-12 md:mb-16">
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
@@ -324,7 +324,7 @@ const Index = () => {
 
       {/* Use Cases */}
       <section className="py-16 md:py-20">
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div className="container mx-auto max-w-7xl p-2">
           <div className="text-center mb-12 md:mb-16">
             <h2
               className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4"
@@ -379,23 +379,6 @@ const Index = () => {
           </div>
         </div>
       </section>
-
-      {/* Footer */}
-      <footer
-        className="py-12 mt-auto"
-        style={{
-          backgroundColor: card.color,
-          color: mutedForeground.color,
-          borderTop: `1px solid ${border.color}`,
-        }}
-      >
-        <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 text-center">
-          <p className="text-sm">
-            © {new Date().getFullYear()} SMTP-LITE. All rights reserved. Built
-            with <span className="animate-pulse">❤️</span> for developers.
-          </p>
-        </div>
-      </footer>
     </div>
   );
 };
