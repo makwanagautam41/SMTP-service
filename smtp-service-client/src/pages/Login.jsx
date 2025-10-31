@@ -1,27 +1,24 @@
 import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate, Navigate } from "react-router-dom";
+import { useNavigate, useSearchParams, Navigate } from "react-router-dom";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
 
 const Login = () => {
   const { user, handleLogin } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const redirectPath = searchParams.get("redirect") || "/dashboard";
+
   const {
     card,
     border,
     foreground,
     primary,
-    muted,
     mutedForeground,
     input,
     primaryForeground,
     hover,
-
     background,
-    secondary,
-    secondaryForeground,
-    cardForeground,
-    legacy,
   } = useThemeStyles();
 
   const [email, setEmail] = useState("");
@@ -29,16 +26,17 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
-  if (user) return <Navigate to="/profile" replace />;
+  if (user) return <Navigate to={redirectPath} replace />;
 
   const onSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
+
     const result = await handleLogin(email, password);
 
     if (result.success) {
-      navigate("/dashboard");
+      navigate(redirectPath, { replace: true });
     } else {
       setError(result.message);
     }

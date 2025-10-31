@@ -44,3 +44,7 @@ export const getProfile = async () => {
 export const verifyUserAccount = async (token) => {
   return await handleRequest(API.post(`/users/verify/${token}`));
 };
+
+export const getDashboardDataService = async () => {
+  return await handleRequest(API.get("/users/dashboard"));
+};

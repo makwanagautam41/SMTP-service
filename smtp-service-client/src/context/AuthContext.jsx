@@ -5,6 +5,7 @@ import {
   registerUser,
   getProfile,
   verifyUserAccount,
+  getDashboardDataService,
 } from "../services/authServices.js";
 
 const AuthContext = createContext();
@@ -48,6 +49,11 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
+  const getDashboardData = async () => {
+    const result = await getDashboardDataService();
+    return result.data;
+  };
+
   return (
     <AuthContext.Provider
       value={{
@@ -57,6 +63,7 @@ export const AuthProvider = ({ children }) => {
         handleRegister,
         handleLogout,
         verifyAccount,
+        getDashboardData,
       }}
     >
       {children}

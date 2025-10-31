@@ -13,6 +13,7 @@ import {
   listAppCredentials,
   deleteAppCredentials,
   viewDecryptedAppCredential,
+  getUserDashboard,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -39,5 +40,7 @@ router.post("/app/create-credentials", createAppCredentials);
 router.get("/app/credentials", listAppCredentials);
 router.get("/app/credentials/:id/decrypted", viewDecryptedAppCredential);
 router.delete("/app/:id", deleteAppCredentials);
+
+router.get("/dashboard", getUserDashboard);
 
 export default router;

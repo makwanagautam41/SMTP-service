@@ -1,6 +1,7 @@
 import User from "../models/User.js";
 import ApiKey from "../models/ApiKey.js";
 import AppCredential from "../models/AppCredential.js";
+import Email from "../models/Email.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
@@ -465,5 +466,50 @@ export const viewDecryptedAppCredential = async (req, res) => {
   } catch (error) {
     console.error("View Decrypted Credential Error:", error);
     return res.status(500).json({ message: "Server error: " + error.message });
+  }
+};
+
+export const getUserDashboard = async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Aggregate stats
+    const totalEmails = await Email.countDocuments({ user: userId });
+    const sentEmails = await Email.countDocuments({
+      user: userId,
+      status: "sent",
+    });
+    const failedEmails = await Email.countDocuments({
+      user: userId,
+      status: "failed",
+    });
+    const pendingEmails = await Email.countDocuments({
+      user: userId,
+      status: "pending",
+    });
+
+    // Last sent email
+    const lastSent = await Email.findOne({ user: userId, status: "sent" })
+      .sort({ createdAt: -1 })
+      .select("createdAt subject to");
+
+    // Recent emails
+    const recentEmails = await Email.find({ user: userId })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
+    res.json({
+      summary: {
+        totalEmails,
+        sentEmails,
+        failedEmails,
+        pendingEmails,
+        lastSent,
+      },
+      recentEmails,
+    });
+  } catch (err) {
+    console.error("Dashboard Error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
   }
 };
