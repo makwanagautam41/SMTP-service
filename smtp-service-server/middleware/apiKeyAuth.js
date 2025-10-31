@@ -20,6 +20,8 @@ export const apiKeyAuth = async (req, res, next) => {
     const key = await ApiKey.findOne({ key: apiKey, active: true }).populate(
       "user"
     );
+
+    console.log(key);
     if (!key)
       return res.status(403).json({ error: "Invalid or inactive API key" });
 
