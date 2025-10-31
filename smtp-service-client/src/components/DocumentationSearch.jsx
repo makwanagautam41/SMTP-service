@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Search, X, FileText, Hash } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
@@ -19,7 +19,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     hover,
   } = useThemeStyles();
 
-  // 1️⃣ Define helper functions first
+  // helper for preview trimming
   const getSearchPreview = (text, query) => {
     const index = text.toLowerCase().indexOf(query.toLowerCase());
     if (index === -1) return text.substring(0, 100);
@@ -34,6 +34,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     return preview;
   };
 
+  // scoring
   const calculateRelevance = (titleMatch, descMatch, contentCount) => {
     let score = 0;
     if (titleMatch) score += 10;
@@ -42,7 +43,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     return score;
   };
 
-  // 2️⃣ THEN define your useMemo that uses them
+  // search logic
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) {
       return sections.map((section) => ({
@@ -63,32 +64,29 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
       const contentMatches = [];
 
       if (section.content) {
-        section.content.forEach((item, index) => {
+        section.content.forEach((item) => {
           const itemText = item.toLowerCase();
           if (itemText.includes(query)) {
             contentMatches.push({
               text: item,
-              index,
-              preview: getSearchPreview(item, query), // ✅ works now
+              preview: getSearchPreview(item, query),
             });
           }
         });
       }
 
       if (section.subsections) {
-        section.subsections.forEach((subsection) => {
-          const subTitleMatch = subsection.title.toLowerCase().includes(query);
-          const subContentMatch = subsection.content
-            ?.toLowerCase()
-            .includes(query);
+        section.subsections.forEach((sub) => {
+          const subTitleMatch = sub.title.toLowerCase().includes(query);
+          const subContentMatch = sub.content?.toLowerCase().includes(query);
 
           if (subTitleMatch || subContentMatch) {
             contentMatches.push({
-              text: subsection.title,
+              text: sub.title,
               isSubsection: true,
-              preview: subsection.content
-                ? getSearchPreview(subsection.content, query)
-                : subsection.title,
+              preview: sub.content
+                ? getSearchPreview(sub.content, query)
+                : sub.title,
             });
           }
         });
@@ -97,7 +95,6 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
       if (titleMatch || descriptionMatch || contentMatches.length > 0) {
         results.push({
           ...section,
-          type: "section",
           titleMatch,
           descriptionMatch,
           contentMatches,
@@ -113,7 +110,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     return results.sort((a, b) => b.relevance - a.relevance);
   }, [searchQuery, sections]);
 
-  // Keyboard navigation
+  // keyboard navigation
   useEffect(() => {
     if (!isOpen) return;
 
@@ -140,12 +137,8 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, selectedIndex, searchResults]);
 
-  // Reset selected index when search changes
-  useEffect(() => {
-    setSelectedIndex(0);
-  }, [searchQuery]);
+  useEffect(() => setSelectedIndex(0), [searchQuery]);
 
-  // Handle result click
   const handleResultClick = (result) => {
     const element = document.getElementById(result.id);
     if (element) {
@@ -155,15 +148,14 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
     }
   };
 
-  // Highlight matching text
   const highlightText = (text, query) => {
     if (!query.trim()) return text;
 
     const parts = text.split(new RegExp(`(${query})`, "gi"));
-    return parts.map((part, index) =>
+    return parts.map((part, i) =>
       part.toLowerCase() === query.toLowerCase() ? (
         <mark
-          key={index}
+          key={i}
           style={{
             backgroundColor: primary.color,
             color: primaryForeground.color,
@@ -183,12 +175,16 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
 
   return createPortal(
     <div
-      className="fixed inset-0 z-[100] flex items-start justify-center pt-[10vh] h-full"
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.5)" }}
+      className="fixed inset-0 z-[100] flex items-start justify-center md:pt-[10vh] pt-0 h-full"
+      style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
       onClick={onClose}
     >
       <div
-        className="w-full h-full max-w-2xl rounded-lg shadow-2xl overflow-hidden"
+        className="
+          w-full max-w-2xl rounded-lg shadow-2xl overflow-hidden
+          md:h-auto h-full md:rounded-lg rounded-none
+          md:my-0 my-0
+        "
         style={{
           backgroundColor: card.color,
           border: `1px solid ${border.color}`,
@@ -213,7 +209,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
               color: foreground.color,
             }}
           />
-          {searchQuery && (
+          {searchQuery ? (
             <button
               onClick={() => setSearchQuery("")}
               className="p-1 rounded hover:opacity-70 transition-opacity"
@@ -221,28 +217,29 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
             >
               <X size={18} />
             </button>
+          ) : (
+            <button
+              onClick={onClose}
+              className="p-1 rounded hover:opacity-70 transition-opacity"
+              style={{ color: mutedForeground.color }}
+            >
+              <X size={18} />
+            </button>
           )}
-          <button
-            onClick={onClose}
-            className="p-1 rounded hover:opacity-70 transition-opacity"
-            style={{ color: mutedForeground.color }}
-          >
-            <X size={20} />
-          </button>
         </div>
 
         {/* Results */}
-        <div className="max-h-[60vh] overflow-y-auto">
+        <div className="lg:max-h-[60vh] md:max-h-[70vh] h-full overflow-y-auto flex-1">
           {searchResults.length === 0 ? (
             <div
-              className="p-8 text-center"
+              className="p-8 text-center flex flex-col items-center justify-center h-full"
               style={{ color: mutedForeground.color }}
             >
-              <Search size={48} className="mx-auto mb-3 opacity-30" />
+              <Search size={48} className="mb-3 opacity-30" />
               <p>No results found for "{searchQuery}"</p>
             </div>
           ) : (
-            <div className="p-2">
+            <div className="p-2 lg:mb-0 mb-10">
               {!searchQuery.trim() && (
                 <div
                   className="px-3 py-2 text-xs font-semibold uppercase tracking-wide"
@@ -345,7 +342,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
             borderColor: border.color,
           }}
         >
-          <div className="flex items-center gap-4">
+          <div className="hidden md:flex items-center gap-4">
             <span className="flex items-center gap-1">
               <kbd
                 className="px-2 py-1 rounded"

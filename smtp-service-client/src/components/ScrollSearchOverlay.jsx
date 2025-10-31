@@ -59,7 +59,7 @@ const MobileScrollSearchBar = () => {
             boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
           }}
         >
-          <div className="px-4 py-3">
+          <div className="p-2">
             <div className="relative flex items-center">
               <Search
                 size={20}
@@ -70,7 +70,7 @@ const MobileScrollSearchBar = () => {
                 type="text"
                 placeholder="Search documentation..."
                 onClick={() => setIsSearchOpen(true)}
-                className="w-full pl-12 pr-4 py-2 text-base rounded-xl outline-none transition-all"
+                className="w-full pl-12 pr-4 py-2 text-base rounded-md outline-none transition-all"
                 style={{
                   backgroundColor: legacy.background.color,
                   color: legacy.foreground.color,
