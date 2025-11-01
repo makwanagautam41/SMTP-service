@@ -164,28 +164,7 @@ const Navbar = () => {
 
             {/* Desktop Auth */}
             <div className="hidden md:flex md:items-center md:space-x-4">
-              {user ? (
-                <>
-                  <span
-                    className="font-medium"
-                    style={{ color: legacy.foreground.color }}
-                  >
-                    Hi, {user.name}
-                  </span>
-                  <button
-                    onClick={handleLogout}
-                    className="flex items-center space-x-2 px-4 py-2 rounded-lg"
-                    style={{
-                      backgroundColor: legacy.primary.color,
-                      color: legacy.primaryForeground.color,
-                      border: `1px solid ${legacy.border.color}`,
-                    }}
-                  >
-                    <LogOut size={18} />
-                    <span>Logout</span>
-                  </button>
-                </>
-              ) : (
+              {!user && (
                 <>
                   <Link
                     to="/login"

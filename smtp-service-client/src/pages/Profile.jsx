@@ -2,10 +2,10 @@ import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import { motion } from "framer-motion";
-import { User } from "lucide-react";
+import { Link, User } from "lucide-react";
 
 const Profile = () => {
-  const { user, loading } = useAuth();
+  const { user, loading, handleLogout } = useAuth();
   const {
     background,
     card,
@@ -104,6 +104,22 @@ const Profile = () => {
           }}
         >
           Go to Dashboard
+        </motion.button>
+        <motion.button
+          className="w-full mt-6 py-2 rounded-lg font-semibold hover:bg-[#702122] transition-colors duration-300"
+          style={{
+            backgroundColor: primary.color,
+            color: primaryForeground.color,
+          }}
+          whileHover={{
+            backgroundColor: "#702122",
+            color: "white",
+          }}
+          onClick={() => {
+            handleLogout();
+          }}
+        >
+          Logout
         </motion.button>
       </motion.div>
     </div>
