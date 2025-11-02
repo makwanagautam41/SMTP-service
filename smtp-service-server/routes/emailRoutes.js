@@ -50,6 +50,23 @@ router.get("/status/:id", async (req, res) => {
   }
 });
 
+router.get("/status", async (req, res) => {
+  try {
+    const emails = await Email.find({ from: req.body.email }).lean();
+
+    if (!emails || emails.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "No emails found for this address" });
+    }
+
+    res.json(emails);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 /**
  * Optional immediate send (blocking) - use with caution
  */

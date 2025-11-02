@@ -78,7 +78,7 @@ export const registerUser = async (req, res) => {
         // "http://localhost:5000/api/email/send",
         {
           type,
-          from: "makwanagautam411@gmail.com",
+          from: process.env.SMTP_RELAY_USER,
           to: email,
           subject: "Verify your account",
           html: `
