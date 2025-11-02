@@ -22,7 +22,7 @@ const emailSchema = new mongoose.Schema({
     required: false,
     trim: true,
   },
-  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+  user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: false },
   meta: { type: Object, default: {} }, // arbitrary metadata
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
