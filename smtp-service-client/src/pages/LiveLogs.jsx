@@ -1,4 +1,3 @@
-// src/components/LiveLogs.jsx
 import React, { useEffect, useState } from "react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 
@@ -20,29 +19,35 @@ export default function LiveLogs() {
     const apiBase =
       import.meta.env.VITE_SMTP_SERVER_API_BASE_URL ||
       "http://localhost:5000/api";
-    const eventSource = new EventSource(`${apiBase}/logs/stream`);
 
-    eventSource.onopen = () => {
-      setIsConnected(true);
-    };
+    let isMounted = true;
+    let intervalId;
 
-    eventSource.onmessage = (event) => {
+    const fetchLogs = async () => {
       try {
-        const log = JSON.parse(event.data);
-        setLogs((prev) => [log, ...prev].slice(0, 100)); // Keep last 100 logs
+        const res = await fetch(`${apiBase}/logs/latest`);
+        if (!res.ok) throw new Error("Failed to fetch logs");
+        const data = await res.json();
+
+        if (isMounted) {
+          setLogs(data);
+          setIsConnected(true);
+        }
       } catch (err) {
-        console.error("Error parsing log:", err);
+        console.error("Error fetching logs:", err);
+        if (isMounted) setIsConnected(false);
       }
     };
 
-    eventSource.onerror = (err) => {
-      console.error("SSE error:", err);
-      setIsConnected(false);
-      eventSource.close();
-    };
+    // Initial fetch
+    fetchLogs();
+
+    // Poll every 2 seconds
+    intervalId = setInterval(fetchLogs, 2000);
 
     return () => {
-      eventSource.close();
+      isMounted = false;
+      clearInterval(intervalId);
       setIsConnected(false);
     };
   }, []);
@@ -135,7 +140,7 @@ export default function LiveLogs() {
               style={{ color: styles.foreground.color }}
               className="text-xl font-semibold"
             >
-              Live Backend Logs
+              Live Backend Logs (Database)
             </h2>
             <div className="flex items-center gap-2">
               <div
@@ -187,7 +192,9 @@ export default function LiveLogs() {
             <div>
               <div className="text-4xl mb-2">📡</div>
               <p>Waiting for logs...</p>
-              <p className="text-xs mt-1">Logs will appear here in real-time</p>
+              <p className="text-xs mt-1">
+                Logs will appear here from the database
+              </p>
             </div>
           </div>
         ) : (

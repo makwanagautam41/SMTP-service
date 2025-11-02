@@ -1,4 +1,4 @@
-// routes/logStreamRoutes.js
+import Log from "../models/Log.js";
 import express from "express";
 import EventEmitter from "events";
 
@@ -24,6 +24,15 @@ router.get("/stream", (req, res) => {
   req.on("close", () => {
     logEmitter.removeListener("log", listener);
   });
+});
+
+router.get("/latest", async (req, res) => {
+  try {
+    const logs = await Log.find().sort({ time: -1 }).limit(100);
+    res.json(logs);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

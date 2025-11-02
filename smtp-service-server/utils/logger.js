@@ -1,22 +1,26 @@
-// utils/logger.js
+import Log from "../models/Log.js";
 import { logEmitter } from "../routes/logStreamRoutes.js";
 
-export function info(...args) {
+export async function info(...args) {
   const message = args.join(" ");
   console.log("[INFO]", message);
-  logEmitter.emit("log", {
+
+  const logEntry = await Log.create({
     level: "info",
     message,
-    time: new Date().toISOString(),
   });
+
+  logEmitter.emit("system", logEntry);
 }
 
-export function error(...args) {
+export async function error(...args) {
   const message = args.join(" ");
   console.error("[ERROR]", message);
-  logEmitter.emit("log", {
+
+  const logEntry = await Log.create({
     level: "error",
     message,
-    time: new Date().toISOString(),
   });
+
+  logEmitter.emit("system", logEntry);
 }
