@@ -9,6 +9,7 @@ import "./models/User.js";
 import { info } from "./utils/logger.js";
 import cookieParser from "cookie-parser";
 import emailEventsRoutes from "./routes/emailEventsRoutes.js";
+import logStreamRoutes from "./routes/logStreamRoutes.js";
 
 dotenv.config();
 const app = express();
@@ -31,6 +32,7 @@ const API_PREFIX = process.env.API_PREFIX || "/api";
 // API routes
 app.use(`${API_PREFIX}/email`, emailRoutes);
 app.use(`${API_PREFIX}/email`, emailEventsRoutes);
+app.use(`${API_PREFIX}/logs`, logStreamRoutes);
 
 (async function bootstrap() {
   await connectDB(process.env.MONGO_URI);
