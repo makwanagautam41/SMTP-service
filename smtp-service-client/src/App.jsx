@@ -15,7 +15,6 @@ import CheckColor from "./pages/CheckColor";
 import Footer from "./components/Footer";
 import { useThemeStyles } from "./utils/useThemeStyles";
 import AppCredentials from "./pages/AppCredentials";
-import LiveLogs from "./pages/LiveLogs";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -37,7 +36,6 @@ const App = () => {
           <Route path="/verify/:token" element={<VerifyAccount />} />
           <Route path="/documentations" element={<Documentations />} />
           <Route path="/checkcolor" element={<CheckColor />} />
-          <Route path="/lvg" element={<LiveLogs />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

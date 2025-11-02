@@ -45,6 +45,8 @@ export const verifyUserAccount = async (token) => {
   return await handleRequest(API.post(`/users/verify/${token}`));
 };
 
-export const getDashboardDataService = async () => {
-  return await handleRequest(API.get("/users/dashboard"));
+export const getDashboardDataService = async (page, status) => {
+  return await handleRequest(
+    API.get(`/users/dashboard?page=${page}&limit=10&status=${status}`)
+  );
 };

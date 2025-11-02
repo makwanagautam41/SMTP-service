@@ -96,9 +96,9 @@ const Index = () => {
     },
     {
       icon: <Clock size={32} />,
-      title: "Real-time Tracking",
+      title: "Email Status Tracking",
       description:
-        "Monitor delivery status, open rates, and engagement metrics in real-time.",
+        "Monitor delivery status, open rates, and engagement metrics in fast.",
     },
     {
       icon: <Users size={32} />,

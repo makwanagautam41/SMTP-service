@@ -49,8 +49,8 @@ export const AuthProvider = ({ children }) => {
     return result;
   };
 
-  const getDashboardData = async () => {
-    const result = await getDashboardDataService();
+  const getDashboardData = async (page, status) => {
+    const result = await getDashboardDataService(page, status);
     return result.data;
   };
 

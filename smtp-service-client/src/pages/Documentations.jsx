@@ -340,7 +340,6 @@ print('✅ Tracking complete')`,
 
   const fixBarItems = [
     { id: "overview", icon: <HelpCircle size={16} />, label: "Overview" },
-    { id: "realtime", icon: <Radio size={16} />, label: "Real-Time Tracking" },
     {
       id: "app-credentials",
       icon: <Lock size={16} />,
@@ -348,7 +347,7 @@ print('✅ Tracking complete')`,
     },
     { id: "auth", icon: <Key size={16} />, label: "Authentication" },
     { id: "send", icon: <Send size={16} />, label: "Send Email API" },
-    { id: "sse", icon: <Zap size={16} />, label: "SSE Endpoint" },
+    { id: "tracking", icon: <Zap size={16} />, label: "Email Tracking API" },
     { id: "examples", icon: <Code size={16} />, label: "Code Examples" },
     { id: "responses", icon: <AlertCircle size={16} />, label: "Responses" },
   ];
@@ -360,29 +359,40 @@ print('✅ Tracking complete')`,
         title: "Overview",
         icon: <HelpCircle size={16} />,
         description:
-          "SMTP-LITE is an event-driven email API service that provides real-time delivery tracking. Unlike traditional email services that require polling, SMTP-LITE uses Server-Sent Events (SSE) to push status updates instantly to your application.",
+          "SMTP-LITE is an email API service that provides delivery tracking via simple API polling. You can send emails through the API and check their status using a unique email ID.",
         content: [
-          "Real-time email delivery tracking via SSE",
-          "No polling required – instant status updates",
+          "Track email delivery status using polling",
           "Simple REST API with JSON payloads",
-          "Works with Node.js, Python, PHP, ASP.NET, and browsers",
-          "Event-driven architecture for scalability",
+          "Secure authentication with API keys",
+          "Supports Node.js, PHP, ASP.NET, Python, and browsers",
+          "Lightweight and reliable delivery tracking system",
         ],
       },
       {
-        id: "realtime",
-        title: "Real-Time Tracking System",
+        id: "send",
+        title: "Send Email API",
+        icon: <Send size={16} />,
+        description:
+          "POST https://smtp-service-server.vercel.app/api/email/send",
+        content: [
+          "Required headers: Content-Type (application/json) and x-api-key",
+          "Request body fields: to (recipient email), subject (email subject), html (email body)",
+          "Returns success response with email ID when queued successfully",
+        ],
+      },
+      {
+        id: "tracking",
+        title: "Email Status Tracking (Polling)",
         icon: <Radio size={16} />,
         description:
-          "SMTP-LITE uses Server-Sent Events (SSE) to provide live email delivery updates without polling.",
+          "SMTP-LITE provides a simple endpoint to check email delivery status by polling at intervals (e.g., every 2 seconds).",
         content: [
-          "Send an email via /api/email/send and receive an email ID",
-          "Connect to /api/email/events/:id using EventSource",
-          "Receive instant status updates as the email moves through stages",
+          "Send an email via /api/email/send and receive a unique email ID",
+          "Call /api/email/status/:id to check the current delivery status",
+          "Recommended polling interval: every 2–3 seconds",
           "Status progression: pending → sending → sent/failed",
-          "No polling overhead – server pushes updates automatically",
-          "Instant notifications when email status changes",
-          "Native browser support with EventSource API",
+          "Stop polling when final status (sent/failed) is received",
+          "Lightweight and compatible with all environments including Vercel",
         ],
       },
       {
@@ -411,57 +421,38 @@ print('✅ Tracking complete')`,
           "Use environment variables and make API calls from backend",
         ],
       },
-      {
-        id: "send",
-        title: "Send Email API",
-        icon: <Send size={16} />,
-        description:
-          "POST https://smtp-service-server.vercel.app/api/email/send",
-        content: [
-          "Required headers: Content-Type (application/json) and x-api-key",
-          "Request body fields: to (recipient email), subject (email subject), html (email body)",
-          "Returns success response with email ID when queued successfully",
-        ],
-      },
-      {
-        id: "sse",
-        title: "Server-Sent Events (SSE) Endpoint",
-        icon: <Zap size={16} />,
-        description:
-          "GET https://smtp-service-server.vercel.app/api/email/events/:id",
-        content: [
-          "Replace :id with email ID from send endpoint",
-          "Server sends JSON events as email status changes",
-          "Status flow: pending → sending → sent/failed",
-          "Connection closes automatically on final status",
-        ],
-      },
+
       {
         id: "examples",
         title: "Code Examples",
         icon: <Code size={16} />,
         description:
-          "Complete code examples for various programming languages and platforms",
+          "Complete code examples for various programming languages and platforms using polling",
         subsections: [
           {
             title: "PHP Example",
-            content: "Send emails using PHP with file_get_contents",
+            content:
+              "Use file_get_contents or cURL to send emails and poll /status/:id every few seconds.",
           },
           {
             title: "ASP.NET (C#) Example",
-            content: "Send emails using HttpClient in C#",
+            content:
+              "Use HttpClient to send emails and periodically request status updates.",
           },
           {
-            title: "Node.js with SSE",
-            content: "Real-time email tracking with native HTTP",
+            title: "Node.js Example",
+            content:
+              "Send emails via fetch() or axios and poll /status/:id in intervals.",
           },
           {
-            title: "Browser with EventSource",
-            content: "Track emails in browser with EventSource API",
+            title: "Browser Example",
+            content:
+              "Use fetch() to call /status/:id every 2 seconds and update the UI dynamically.",
           },
           {
-            title: "Python with SSE",
-            content: "Real-time tracking using sseclient-py package",
+            title: "Python Example",
+            content:
+              "Use requests to send email and a simple loop to check /status/:id.",
           },
         ],
       },
@@ -472,16 +463,17 @@ print('✅ Tracking complete')`,
         description: "Understanding API response codes and formats",
         content: [
           "Success Response (200): Email queued successfully with ID",
+          "GET /status/:id returns the latest delivery status",
           "Error Response (400): Invalid request body or missing fields",
           "Error Response (401): Invalid or missing API key",
           "Error Response (404): Email ID not found",
           "Error Response (500): Server error",
-          "SSE sends real-time status updates: pending, sending, sent, failed",
         ],
       },
     ],
     []
   );
+
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.ctrlKey || e.metaKey) && e.key === "k") {
@@ -513,17 +505,8 @@ print('✅ Tracking complete')`,
                 alt="SMTP-LITE Logo"
                 className="w-10 h-10 object-contain"
               />
-              <h1 className="text-3xl font-bold">
-                SMTP‑LITE API Documentation
-              </h1>
+              <h1 className="text-3xl font-bold">API Documentation</h1>
             </div>
-            <p
-              className="mt-1 max-w-xl"
-              style={{ color: mutedForeground.color }}
-            >
-              Send transactional emails with real-time tracking. Get instant
-              status updates via Server-Sent Events (SSE).
-            </p>
           </div>
           <div className="flex gap-3 items-center">
             <Link
@@ -610,10 +593,10 @@ print('✅ Tracking complete')`,
                 className="leading-relaxed mb-3"
                 style={{ color: mutedForeground.color }}
               >
-                SMTP-LITE is an event-driven email API service that provides
-                real-time delivery tracking. Unlike traditional email services
-                that require polling, SMTP-LITE uses Server-Sent Events (SSE) to
-                push status updates instantly to your application.
+                SMTP-LITE is an worker-driven email API service that provides
+                email sending functionality without much configurations. Our
+                System is totaly worker based that select the latest email and
+                sends that email to customer.
               </p>
               <div
                 className="p-4 rounded mt-4 transition-colors duration-300"
@@ -633,161 +616,12 @@ print('✅ Tracking complete')`,
                   className="space-y-1 text-sm list-disc list-inside"
                   style={{ color: mutedForeground.color }}
                 >
-                  <li>Real-time email delivery tracking via SSE</li>
-                  <li>No polling required – instant status updates</li>
+                  <li>Polling required – email status updates</li>
                   <li>Simple REST API with JSON payloads</li>
                   <li>
                     Works with Node.js, Python, PHP, ASP.NET, and browsers
                   </li>
-                  <li>Event-driven architecture for scalability</li>
-                </ul>
-              </div>
-            </section>
-
-            {/* Real-Time Tracking */}
-            <section
-              id="realtime"
-              className="rounded-lg shadow p-6 transition-colors duration-300"
-              style={{
-                backgroundColor: card.color,
-                color: foreground.color,
-                border: `1px solid ${border.color}`,
-              }}
-            >
-              <h2
-                className="text-2xl font-bold mb-4 flex items-center gap-2"
-                style={{ color: primary.color }}
-              >
-                <Radio style={{ color: primary.color }} />
-                Real-Time Tracking System
-              </h2>
-
-              <p
-                className="leading-relaxed mb-4"
-                style={{ color: mutedForeground.color }}
-              >
-                SMTP-LITE uses Server-Sent Events (SSE) to provide live email
-                delivery updates without polling.
-              </p>
-
-              <h3
-                className="text-lg font-semibold mb-3"
-                style={{ color: foreground.color }}
-              >
-                How It Works
-              </h3>
-
-              <div
-                className="rounded-lg p-4 mb-4 transition-colors duration-300"
-                style={{ backgroundColor: secondary.color }}
-              >
-                <ol className="space-y-3" style={{ color: foreground.color }}>
-                  <li className="flex gap-3">
-                    <span
-                      className="font-bold"
-                      style={{ color: primary.color }}
-                    >
-                      1.
-                    </span>
-                    <span>
-                      Send an email via{" "}
-                      <code
-                        className="px-2 py-1 rounded text-sm"
-                        style={{
-                          backgroundColor: muted.color,
-                          color: mutedForeground.color,
-                        }}
-                      >
-                        /api/email/send
-                      </code>{" "}
-                      and receive an email ID
-                    </span>
-                  </li>
-
-                  <li className="flex gap-3">
-                    <span
-                      className="font-bold"
-                      style={{ color: primary.color }}
-                    >
-                      2.
-                    </span>
-                    <span>
-                      Connect to{" "}
-                      <code
-                        className="px-2 py-1 rounded text-sm"
-                        style={{
-                          backgroundColor: muted.color,
-                          color: mutedForeground.color,
-                        }}
-                      >
-                        /api/email/events/:id
-                      </code>{" "}
-                      using EventSource
-                    </span>
-                  </li>
-
-                  <li className="flex gap-3">
-                    <span
-                      className="font-bold"
-                      style={{ color: primary.color }}
-                    >
-                      3.
-                    </span>
-                    <span>
-                      Receive instant status updates as the email moves through
-                      stages
-                    </span>
-                  </li>
-
-                  <li className="flex gap-3">
-                    <span
-                      className="font-bold"
-                      style={{ color: primary.color }}
-                    >
-                      4.
-                    </span>
-                    <span>
-                      Status progression:{" "}
-                      <code
-                        className="px-2 py-1 rounded text-sm"
-                        style={{
-                          backgroundColor: muted.color,
-                          color: mutedForeground.color,
-                        }}
-                      >
-                        pending → sending → sent/failed
-                      </code>
-                    </span>
-                  </li>
-                </ol>
-              </div>
-
-              <div
-                className="p-4 rounded transition-colors duration-300"
-                style={{
-                  backgroundColor: secondary.color,
-                  borderLeft: `4px solid ${primary.color}`,
-                }}
-              >
-                <h4
-                  className="font-semibold mb-2"
-                  style={{ color: primary.color }}
-                >
-                  Benefits of SSE:
-                </h4>
-                <ul
-                  className="space-y-1 text-sm list-disc list-inside"
-                  style={{ color: mutedForeground.color }}
-                >
-                  <li>
-                    No polling overhead – server pushes updates automatically
-                  </li>
-                  <li>Instant notifications when email status changes</li>
-                  <li>Native browser support with EventSource API</li>
-                  <li>Lightweight and efficient connection management</li>
-                  <li>
-                    Multiple clients can track the same email simultaneously
-                  </li>
+                  <li>Worker-driven architecture for scalability</li>
                 </ul>
               </div>
             </section>
@@ -848,10 +682,11 @@ print('✅ Tracking complete')`,
                       href="https://myaccount.google.com/apppasswords"
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="underline transition-colors duration-200"
-                      style={{ color: primary.color }}
+                      className="underline inline-flex items-center gap-1 transition-colors duration-200"
+                      style={{ color: "blue" }}
                     >
-                      Create and manage your app password
+                      Create and manage your app password{" "}
+                      <ExternalLink size={14} />
                     </a>
                   </li>
                   <li>
@@ -909,17 +744,10 @@ print('✅ Tracking complete')`,
                   <strong>Manage your App Credentials:</strong> Visit{" "}
                   <Link
                     to="/app-credentials"
-                    className="inline-flex items-center gap-1 transition-colors duration-200"
+                    className="inline-flex underline items-center gap-1 transition-colors duration-200"
                     style={{
-                      color: primary.color,
-                      textDecoration: "none",
+                      color: "blue",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = legacy.hover.color)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = primary.color)
-                    }
                   >
                     App Credentials Setup <ExternalLink size={14} />
                   </Link>
@@ -976,15 +804,8 @@ print('✅ Tracking complete')`,
                     to="/apikeys"
                     className="inline-flex items-center gap-1 transition-colors duration-200"
                     style={{
-                      color: primary.color,
-                      textDecoration: "none",
+                      color: "blue",
                     }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.color = legacy.hover.color)
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.color = primary.color)
-                    }
                   >
                     API Keys Management <ExternalLink size={14} />
                   </Link>
@@ -996,7 +817,7 @@ print('✅ Tracking complete')`,
                 className="mt-4 p-4 rounded flex items-start gap-2 transition-colors duration-300"
                 style={{
                   backgroundColor: "#fff7e6",
-                  borderLeft: `4px solid #f59e0b`, // amber tone for warning
+                  borderLeft: `4px solid #f59e0b`,
                 }}
               >
                 <span className="text-xl">⚠️</span>
@@ -1016,13 +837,7 @@ print('✅ Tracking complete')`,
                     <Link
                       to="/app-credentials"
                       className="underline font-medium transition-colors duration-200"
-                      style={{ color: primary.color }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.color = legacy.hover.color)
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.color = primary.color)
-                      }
+                      style={{ color: "blue" }}
                     >
                       SMTP App Credentials
                     </Link>
@@ -1294,9 +1109,9 @@ print('✅ Tracking complete')`,
               </div>
             </section>
 
-            {/* SSE Endpoint */}
+            {/* tracking Endpoint */}
             <section
-              id="sse"
+              id="tracking"
               className="rounded-lg shadow p-6 transition-colors duration-300"
               style={{
                 backgroundColor: card.color,
@@ -1309,7 +1124,7 @@ print('✅ Tracking complete')`,
                 style={{ color: primary.color }}
               >
                 <Zap style={{ color: primary.color }} />
-                Server-Sent Events (SSE) Endpoint
+                Email Tracking Endpoint
               </h2>
 
               {/* Endpoint Section */}
@@ -1329,7 +1144,7 @@ print('✅ Tracking complete')`,
                   }}
                 >
                   GET
-                  https://smtp-service-server.vercel.app/api/email/events/:id
+                  https://smtp-service-server.vercel.app/api/email/status/:id
                 </div>
                 <p
                   className="text-sm mt-2"
@@ -1632,7 +1447,7 @@ print('✅ Tracking complete')`,
                     className="text-lg font-semibold mb-2"
                     style={{ color: primary.color }}
                   >
-                    SSE Status Updates
+                    Email Status Updates
                   </h3>
                   <p
                     className="text-sm mb-2"
@@ -1737,7 +1552,7 @@ print('✅ Tracking complete')`,
                     "Event Emitted: Backend EventEmitter broadcasts the queue event",
                     "Worker Processes: Background worker picks up the email and changes status to 'sending'",
                     "SMTP Delivery: Email sent via Nodemailer through configured SMTP server",
-                    "Real-Time Updates: Each status change emits an SSE event to all connected clients",
+                    "Email Updates: Each status change emits on database and change it status",
                   ].map((step, index) => (
                     <div key={index} className="flex items-start gap-3">
                       <div
@@ -1771,7 +1586,6 @@ print('✅ Tracking complete')`,
                     "MongoDB",
                     "Nodemailer",
                     "EventEmitter",
-                    "Server-Sent Events",
                     "REST API",
                   ].map((tech, i) => (
                     <li key={i} className="flex items-center gap-2">

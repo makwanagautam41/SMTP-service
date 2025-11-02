@@ -31,9 +31,9 @@ const Dashboard = () => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(10);
   const [statusFilter, setStatusFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [lastUpdated, setLastUpdated] = useState(null);
 
   const { getDashboardData } = useAuth();
   const {
@@ -46,34 +46,49 @@ const Dashboard = () => {
     mutedForeground,
     card,
     border,
-    muted,
     hover,
     theme,
   } = useThemeStyles();
 
-  useEffect(() => {
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = async (showRefreshIndicator = false) => {
     try {
-      setLoading(true);
-      const res = await getDashboardData();
-      setData(res);
+      if (showRefreshIndicator) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
+      }
+
+      const res = await getDashboardData(currentPage, statusFilter);
+      if (res) {
+        setData(res);
+        setLastUpdated(new Date());
+      }
     } catch (err) {
       console.error("Dashboard Fetch Error:", err);
     } finally {
       setLoading(false);
+      setRefreshing(false);
     }
   };
 
-  const handleRefresh = async () => {
-    setRefreshing(true);
-    await fetchData();
-    setTimeout(() => setRefreshing(false), 500);
+  const handleRefresh = () => {
+    fetchData(true);
   };
 
-  if (loading) {
+  const handlePageChange = (newPage) => {
+    setCurrentPage(newPage);
+  };
+
+  const handleStatusFilterChange = (newStatus) => {
+    setStatusFilter(newStatus);
+    setCurrentPage(1);
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage, statusFilter]);
+
+  if (loading && !data) {
     return (
       <div
         className="min-h-screen flex items-center justify-center"
@@ -113,7 +128,7 @@ const Dashboard = () => {
             Failed to load dashboard data
           </p>
           <button
-            onClick={fetchData}
+            onClick={handleRefresh}
             className="mt-4 px-6 py-2 rounded-lg font-medium transition-all"
             style={{
               backgroundColor: primary.color,
@@ -127,53 +142,41 @@ const Dashboard = () => {
     );
   }
 
-  const { summary, recentEmails, apiKeys } = data;
-
-  // Filter emails by status
-  const filteredEmails =
-    statusFilter === "all"
-      ? recentEmails
-      : recentEmails.filter((email) => email.status === statusFilter);
-
-  // Pagination logic
-  const indexOfLastItem = currentPage * itemsPerPage;
-  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
-  const currentEmails = filteredEmails.slice(indexOfFirstItem, indexOfLastItem);
-  const totalPages = Math.ceil(filteredEmails.length / itemsPerPage);
+  const { summary, recentEmails, pagination } = data;
 
   // Chart data for pie chart
   const pieData = [
-    { name: "Sent", value: summary.sentEmails, color: "#22c55e" },
-    { name: "Failed", value: summary.failedEmails, color: "#ef4444" },
-    { name: "Pending", value: summary.pendingEmails, color: "#f59e0b" },
+    { name: "Sent", value: summary?.sentEmails || 0, color: "#22c55e" },
+    { name: "Failed", value: summary?.failedEmails || 0, color: "#ef4444" },
+    { name: "Pending", value: summary?.pendingEmails || 0, color: "#f59e0b" },
   ];
 
   // Stats cards configuration
   const statsCards = [
     {
       label: "Total Emails",
-      value: summary.totalEmails,
+      value: summary?.totalEmails || 0,
       icon: Mail,
       color: primary.color,
-      bgColor: theme === "light" ? "#dbeafe" : "#1e3a8a",
+      bgColor: theme === "light" ? "#f5f5f5" : "#1a1a1a",
     },
     {
       label: "Sent Successfully",
-      value: summary.sentEmails,
+      value: summary?.sentEmails || 0,
       icon: CheckCircle2,
       color: "#22c55e",
       bgColor: theme === "light" ? "#dcfce7" : "#14532d",
     },
     {
       label: "Failed",
-      value: summary.failedEmails,
+      value: summary?.failedEmails || 0,
       icon: XCircle,
       color: "#ef4444",
       bgColor: theme === "light" ? "#fee2e2" : "#7f1d1d",
     },
     {
       label: "Pending",
-      value: summary.pendingEmails,
+      value: summary?.pendingEmails || 0,
       icon: Clock,
       color: "#f59e0b",
       bgColor: theme === "light" ? "#fef3c7" : "#78350f",
@@ -202,19 +205,38 @@ const Dashboard = () => {
               Monitor your email activity and performance
             </p>
           </div>
-          <button
-            onClick={handleRefresh}
-            disabled={refreshing}
-            className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all self-start sm:self-auto"
-            style={{
-              backgroundColor: secondary.color,
-              color: secondaryForeground.color,
-              border: `1px solid ${border.color}`,
-            }}
-          >
-            <RefreshCw size={18} className={refreshing ? "animate-spin" : ""} />
-            Refresh
-          </button>
+
+          <div className="flex items-center gap-3">
+            {/* Last Updated Timestamp */}
+            {lastUpdated && (
+              <div
+                className="text-sm px-4 py-3 rounded-lg"
+                style={{
+                  backgroundColor: secondary.color,
+                  color: mutedForeground.color,
+                }}
+              >
+                Last updated: {lastUpdated.toLocaleTimeString()}
+              </div>
+            )}
+
+            {/* Refresh Button */}
+            <button
+              onClick={handleRefresh}
+              disabled={refreshing}
+              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50"
+              style={{
+                backgroundColor: primary.color,
+                color: primaryForeground.color,
+              }}
+            >
+              <RefreshCw
+                size={18}
+                className={refreshing ? "animate-spin" : ""}
+              />
+              {refreshing ? "Refreshing..." : "Refresh"}
+            </button>
+          </div>
         </div>
 
         {/* Stats Cards */}
@@ -281,9 +303,9 @@ const Dashboard = () => {
             <ResponsiveContainer width="100%" height={280}>
               <BarChart
                 data={[
-                  { name: "Sent", value: summary.sentEmails },
-                  { name: "Failed", value: summary.failedEmails },
-                  { name: "Pending", value: summary.pendingEmails },
+                  { name: "Sent", value: summary?.sentEmails || 0 },
+                  { name: "Failed", value: summary?.failedEmails || 0 },
+                  { name: "Pending", value: summary?.pendingEmails || 0 },
                 ]}
               >
                 <XAxis
@@ -363,24 +385,23 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Last Sent Email - Highlighted Card */}
-        {summary.lastSent && (
+        {/* Last Sent Email */}
+        {summary?.lastSent && (
           <div
             className="rounded-xl p-6 shadow-sm transition-all"
             style={{
               backgroundColor: card.color,
               border: `2px solid ${primary.color}`,
-              backgroundImage: `linear-gradient(135deg, ${card.color} 0%, ${hover.background} 100%)`,
             }}
           >
             <div className="flex items-center gap-2 mb-4">
               <div
                 className="p-2 rounded-lg"
                 style={{
-                  backgroundColor: theme === "light" ? "#dbeafe" : "#1e3a8a",
+                  backgroundColor: theme === "light" ? "#f5f5f5" : "#1a1a1a",
                 }}
               >
-                <CheckCircle2 size={20} style={{ color: primary.color }} />
+                <CheckCircle2 size={20} style={{ color: "#22c55e" }} />
               </div>
               <h2
                 className="text-lg font-semibold"
@@ -458,10 +479,7 @@ const Dashboard = () => {
                   <Filter size={18} style={{ color: mutedForeground.color }} />
                   <select
                     value={statusFilter}
-                    onChange={(e) => {
-                      setStatusFilter(e.target.value);
-                      setCurrentPage(1);
-                    }}
+                    onChange={(e) => handleStatusFilterChange(e.target.value)}
                     className="px-3 py-2 rounded-lg border outline-none text-sm"
                     style={{
                       backgroundColor: secondary.color,
@@ -517,7 +535,7 @@ const Dashboard = () => {
                 </tr>
               </thead>
               <tbody>
-                {currentEmails.length === 0 ? (
+                {!recentEmails || recentEmails.length === 0 ? (
                   <tr>
                     <td
                       colSpan="4"
@@ -534,7 +552,7 @@ const Dashboard = () => {
                     </td>
                   </tr>
                 ) : (
-                  currentEmails.map((email, index) => (
+                  recentEmails.map((email, index) => (
                     <tr
                       key={email._id}
                       className="border-t transition-colors"
@@ -612,22 +630,19 @@ const Dashboard = () => {
             </table>
           </div>
 
-          {/* Pagination */}
-          {filteredEmails.length > 0 && (
+          {/* Backend-Driven Pagination */}
+          {pagination && pagination.totalPages > 1 && (
             <div
               className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t"
               style={{ borderColor: border.color }}
             >
               <p className="text-sm" style={{ color: mutedForeground.color }}>
-                Showing {indexOfFirstItem + 1} to{" "}
-                {Math.min(indexOfLastItem, filteredEmails.length)} of{" "}
-                {filteredEmails.length} emails
+                Showing page {pagination.page} of {pagination.totalPages} (
+                {pagination.totalFiltered} total emails)
               </p>
               <div className="flex items-center gap-2">
                 <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.max(prev - 1, 1))
-                  }
+                  onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
                   className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
@@ -640,18 +655,18 @@ const Dashboard = () => {
                 </button>
 
                 <div className="flex items-center gap-1">
-                  {[...Array(totalPages)].map((_, index) => {
+                  {[...Array(pagination.totalPages)].map((_, index) => {
                     const pageNum = index + 1;
                     // Show first, last, current, and adjacent pages
                     if (
                       pageNum === 1 ||
-                      pageNum === totalPages ||
+                      pageNum === pagination.totalPages ||
                       (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
                     ) {
                       return (
                         <button
                           key={pageNum}
-                          onClick={() => setCurrentPage(pageNum)}
+                          onClick={() => handlePageChange(pageNum)}
                           className="w-10 h-10 rounded-lg font-medium transition-all"
                           style={{
                             backgroundColor:
@@ -687,10 +702,8 @@ const Dashboard = () => {
                 </div>
 
                 <button
-                  onClick={() =>
-                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                  }
-                  disabled={currentPage === totalPages}
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === pagination.totalPages}
                   className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                   style={{
                     backgroundColor: secondary.color,

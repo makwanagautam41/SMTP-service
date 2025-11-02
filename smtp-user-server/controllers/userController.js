@@ -469,11 +469,75 @@ export const viewDecryptedAppCredential = async (req, res) => {
   }
 };
 
+// export const getUserDashboard = async (req, res) => {
+//   try {
+//     const userId = req.user.id;
+
+//     // Aggregate stats
+//     const totalEmails = await Email.countDocuments({ user: userId });
+//     const sentEmails = await Email.countDocuments({
+//       user: userId,
+//       status: "sent",
+//     });
+//     const failedEmails = await Email.countDocuments({
+//       user: userId,
+//       status: "failed",
+//     });
+//     const pendingEmails = await Email.countDocuments({
+//       user: userId,
+//       status: "pending",
+//     });
+
+//     // Last sent email
+//     const lastSent = await Email.findOne({ user: userId, status: "sent" })
+//       .sort({ createdAt: -1 })
+//       .select("createdAt subject to");
+
+//     // Recent emails
+//     const recentEmails = await Email.find({ user: userId })
+//       .sort({ createdAt: -1 })
+//       .limit(10);
+
+//     res.json({
+//       summary: {
+//         totalEmails,
+//         sentEmails,
+//         failedEmails,
+//         pendingEmails,
+//         lastSent,
+//       },
+//       recentEmails,
+//     });
+//   } catch (err) {
+//     console.error("Dashboard Error:", err);
+//     res.status(500).json({ message: "Server error: " + err.message });
+//   }
+// };
+
 export const getUserDashboard = async (req, res) => {
   try {
     const userId = req.user.id;
 
-    // Aggregate stats
+    // Pagination + Filtering
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const status = req.query.status; // optional: sent, failed, pending, etc.
+    const skip = (page - 1) * limit;
+
+    const filter = { user: userId };
+    if (status && status !== "all") filter.status = status;
+
+    // Aggregate stats efficiently using one aggregation pipeline
+    const stats = await Email.aggregate([
+      { $match: { user: userId } },
+      {
+        $group: {
+          _id: "$status",
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+
     const totalEmails = await Email.countDocuments({ user: userId });
     const sentEmails = await Email.countDocuments({
       user: userId,
@@ -488,25 +552,48 @@ export const getUserDashboard = async (req, res) => {
       status: "pending",
     });
 
+    const summary = {
+      totalEmails,
+      sentEmails,
+      failedEmails,
+      pendingEmails,
+    };
+
+    stats.forEach((item) => {
+      summary.totalEmails += item.count;
+      if (item._id === "sent") summary.sentEmails = item.count;
+      if (item._id === "failed") summary.failedEmails = item.count;
+      if (item._id === "pending") summary.pendingEmails = item.count;
+    });
+
     // Last sent email
     const lastSent = await Email.findOne({ user: userId, status: "sent" })
       .sort({ createdAt: -1 })
       .select("createdAt subject to");
 
-    // Recent emails
-    const recentEmails = await Email.find({ user: userId })
-      .sort({ createdAt: -1 })
-      .limit(10);
+    summary.lastSent = lastSent || null;
 
-    res.json({
-      summary: {
-        totalEmails,
-        sentEmails,
-        failedEmails,
-        pendingEmails,
-        lastSent,
-      },
+    // Paginated emails
+    const [recentEmails, totalFiltered] = await Promise.all([
+      Email.find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select("subject to status createdAt"),
+      Email.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalFiltered / limit);
+
+    return res.json({
+      summary,
       recentEmails,
+      pagination: {
+        page,
+        limit,
+        totalFiltered,
+        totalPages,
+      },
     });
   } catch (err) {
     console.error("Dashboard Error:", err);
