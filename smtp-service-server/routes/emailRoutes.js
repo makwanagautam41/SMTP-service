@@ -70,7 +70,7 @@ router.get("/status", async (req, res) => {
 /**
  * Optional immediate send (blocking) - use with caution
  */
-router.get("/logs", async (req, res) => {
+router.get("/emails", async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 50; // default 50
     const emails = await Email.find({})

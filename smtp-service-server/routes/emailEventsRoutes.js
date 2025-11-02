@@ -1,4 +1,3 @@
-// routes/emailEventsRoutes.js
 import express from "express";
 import EventEmitter from "events";
 

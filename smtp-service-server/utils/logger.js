@@ -1,5 +1,4 @@
 import Log from "../models/Log.js";
-import { logEmitter } from "../routes/logStreamRoutes.js";
 
 export async function info(...args) {
   const message = args.join(" ");
@@ -9,8 +8,6 @@ export async function info(...args) {
     level: "info",
     message,
   });
-
-  logEmitter.emit("system", logEntry);
 }
 
 export async function error(...args) {
@@ -21,6 +18,4 @@ export async function error(...args) {
     level: "error",
     message,
   });
-
-  logEmitter.emit("system", logEntry);
 }
