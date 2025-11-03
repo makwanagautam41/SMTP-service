@@ -11,9 +11,10 @@ import {
   Sun,
   Moon,
   User,
-  Home,
   Search,
 } from "lucide-react";
+import { MdOutlineDocumentScanner } from "react-icons/md";
+import { TbLockAccess } from "react-icons/tb";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -55,13 +56,17 @@ const Navbar = () => {
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
   const publicLinks = [
-    { name: "Documentations", href: "/documentations", icon: Home },
+    {
+      name: "Documentations",
+      href: "/documentations",
+      icon: MdOutlineDocumentScanner,
+    },
   ];
 
   const privateLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "API Keys", href: "/apikeys", icon: KeyRound },
-    { name: "APP Credentials", href: "/app-credentials", icon: User },
+    { name: "APP Credentials", href: "/app-credentials", icon: TbLockAccess },
     { name: "Profile", href: "/profile", icon: User },
   ];
 
