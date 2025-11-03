@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useRef } from "react";
 import { Link } from "react-router-dom";
 import {
   Copy,
@@ -13,26 +13,18 @@ import {
   Zap,
   Radio,
   Lock,
+  ChevronDown,
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import logo from "../../public/logo.png";
 import DocumentationSearch from "../components/DocumentationSearch";
 import { useTheme } from "../context/ThemeContext";
 import ScrollSearchOverlay from "../components/ScrollSearchOverlay";
+import CodeBlock from "../components/CodeBlock";
 
 const Documentations = () => {
-  const [copiedCode, setCopiedCode] = useState(null);
-  const { isSearchOpen, setIsSearchOpen } = useTheme();
-
-  const copyToClipboard = async (text, id) => {
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedCode(id);
-      setTimeout(() => setCopiedCode(null), 2000);
-    } catch (err) {
-      alert("Failed to copy: " + err.message);
-    }
-  };
+  const { isSearchOpen, setIsSearchOpen, copiedCode, setCopiedCode } =
+    useTheme();
 
   const scrollToSection = (e, id) => {
     e.preventDefault();
@@ -315,28 +307,6 @@ while True:
     
     time.sleep(2)  # Wait 2 seconds before next poll`,
   };
-
-  const CodeBlock = ({ code, language, id }) => (
-    <div className="relative">
-      <div className="absolute top-3 right-3 flex gap-2 items-center">
-        <span className="text-xs text-gray-400 uppercase">{language}</span>
-        <button
-          onClick={() => copyToClipboard(code, id)}
-          className="p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition"
-          title="Copy code"
-        >
-          {copiedCode === id ? (
-            <Check size={16} className="text-green-400" />
-          ) : (
-            <Copy size={16} className="text-gray-300" />
-          )}
-        </button>
-      </div>
-      <pre className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm">
-        <code>{code}</code>
-      </pre>
-    </div>
-  );
 
   const fixBarItems = [
     { id: "overview", icon: <HelpCircle size={16} />, label: "Overview" },

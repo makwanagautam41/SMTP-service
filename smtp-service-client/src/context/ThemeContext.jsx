@@ -25,10 +25,18 @@ export const ThemeProvider = ({ children }) => {
     setTheme((prev) => (prev === "light" ? "dark" : "light"));
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [copiedCode, setCopiedCode] = useState(null);
 
   return (
     <ThemeContext.Provider
-      value={{ theme, toggleTheme, isSearchOpen, setIsSearchOpen }}
+      value={{
+        theme,
+        toggleTheme,
+        isSearchOpen,
+        setIsSearchOpen,
+        copiedCode,
+        setCopiedCode,
+      }}
     >
       {children}
     </ThemeContext.Provider>
