@@ -490,8 +490,8 @@ while True:
               <Key size={18} />
               Get API Key
             </Link>
-            <button
-              onClick={(e) => scrollToSection(e, "getting-started")}
+            <Link
+              to={"/quick-start"}
               className="inline-flex items-center gap-2 border border-gray-200 px-4 py-2 rounded-md transition"
               style={{
                 borderColor: border.color,
@@ -500,7 +500,7 @@ while True:
             >
               <Code size={18} />
               Quick Start
-            </button>
+            </Link>
           </div>
         </header>
 

@@ -15,6 +15,7 @@ import CheckColor from "./pages/CheckColor";
 import Footer from "./components/Footer";
 import { useThemeStyles } from "./utils/useThemeStyles";
 import AppCredentials from "./pages/AppCredentials";
+import QuickStart from "./pages/QuickStart";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -35,6 +36,7 @@ const App = () => {
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:token" element={<VerifyAccount />} />
           <Route path="/documentations" element={<Documentations />} />
+          <Route path="/quick-start" element={<QuickStart />} />
           <Route path="/checkcolor" element={<CheckColor />} />
 
           <Route element={<ProtectedRoute />}>
