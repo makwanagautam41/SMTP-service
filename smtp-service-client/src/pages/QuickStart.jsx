@@ -140,10 +140,10 @@ const QuickStart = () => {
         "Poll every 2-3 seconds",
         "Status: pending → sending → sent/failed",
       ],
-      code: `// Poll for status
+      code: `// Poll for status (if need then use this otherwise avoid email status checking)
 const checkStatus = async (emailId) => {
   const res = await fetch(
-    \`https://smtp-service-server.vercel.app/api/email/status/\${emailId}\`,
+    \`https://smtp-service-server.vercel.app/api/email/status/\${response._id}\`,
     { headers: { 'x-api-key': 'YOUR_API_KEY' } }
   );
   return await res.json();
