@@ -84,7 +84,10 @@ const res = await fetch('https://smtp-service-server.vercel.app/api/email/send',
   })
 });
 const data = await res.json();
-console.log('Email ID:', data.id);`,
+console.log('Email ID:', data.id);
+
+// To check status, poll the status endpoint:
+// GET https://smtp-service-server.vercel.app/api/email/status/{email._id}`,
 
     fetchBrowser: `fetch('https://smtp-service-server.vercel.app/api/email/send', {
   method: 'POST',
@@ -99,6 +102,7 @@ console.log('Email ID:', data.id);`,
   })
 }).then(r => r.json()).then(data => {
   console.log('Email ID:', data.id);
+  // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{email._id}
 }).catch(console.error);`,
 
     pythonRequests: `import requests
@@ -115,7 +119,10 @@ data = {
 }
 res = requests.post(url, json=data, headers=headers)
 response_data = res.json()
-print('Email ID:', response_data['id'])`,
+print('Email ID:', response_data['id'])
+
+# To check status, poll the status endpoint:
+# GET https://smtp-service-server.vercel.app/api/email/status/{email._id}`,
 
     php: `<?php
 $url = 'https://smtp-service-server.vercel.app/api/email/send';
@@ -142,6 +149,7 @@ if ($result === FALSE) {
 } else {
     $response = json_decode($result, true);
     echo "Email ID: " . $response['id'];
+    // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{response._id}
 }
 ?>`,
 
@@ -175,16 +183,15 @@ public class EmailService
         var responseString = await response.Content.ReadAsStringAsync();
         
         Console.WriteLine($"Response: {responseString}");
+        // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{response._id}
     }
 }`,
 
-    sseNode: `import https from "https";
-
+    sseNode: `// Node.js - Send email and poll for status
 const API_URL = "https://smtp-service-server.vercel.app";
-const API_KEY =
-  "YOUR_API_KEY_HERE";
+const API_KEY = "YOUR_API_KEY_HERE";
 
-// 1️⃣ Send email
+// Send email
 const sendEmail = async () => {
   const res = await fetch(\`\${API_URL}/api/email/send\`, {
     method: "POST",
@@ -193,9 +200,9 @@ const sendEmail = async () => {
       "x-api-key": API_KEY,
     },
     body: JSON.stringify({
-      to = "recipient@example.com",
-      subject = "Hello from SMTP-LITE",
-      html = "<strong>This is a test email sent via SMTP-LITE.</strong>",
+      to: "recipient@example.com",
+      subject: "Hello from SMTP-LITE",
+      html: "<strong>This is a test email sent via SMTP-LITE.</strong>",
     }),
   });
 
@@ -204,39 +211,33 @@ const sendEmail = async () => {
   return data.id;
 };
 
-// 2️⃣ Listen to live status using native HTTP (SSE)
-const listenForUpdates = (emailId) => {
-  console.log("🔗 Connecting to event stream...");
-
-  https.get(\`\${API_URL}/api/email/events/\${emailId}\`, (res) => {
-    res.setEncoding("utf8");
-    res.on("data", (chunk) => {
-      const lines = chunk.split("\\n").filter(Boolean);
-      for (const line of lines) {
-        if (line.startsWith("data:")) {
-          const json = line.replace("data:", "").trim();
-          try {
-            const event = JSON.parse(json);
-            console.log("📡 Status update:", event.status);
-            if (event.status === "sent" || event.status === "failed") {
-              console.log("✅ Final status:", event.status);
-              res.destroy(); // close connection
-            }
-          } catch {
-            // skip malformed data
-          }
-        }
-      }
-    });
+// Poll for status
+const checkStatus = async (emailId) => {
+  const res = await fetch(\`\${API_URL}/api/email/status/\${data._id}\`, {
+    headers: { "x-api-key": API_KEY }
   });
+  const data = await res.json();
+  console.log("📨 Current status:", data.status);
+  return data.status;
 };
 
-// 3️⃣ Run
+// Poll every 2 seconds until complete
+const pollUntilComplete = async (emailId) => {
+  const interval = setInterval(async () => {
+    const status = await checkStatus(emailId);
+    if (status === "sent" || status === "failed") {
+      console.log("✅ Final status:", status);
+      clearInterval(interval);
+    }
+  }, 2000);
+};
+
+// Run
 (async () => {
   const id = await sendEmail();
-  listenForUpdates(id);
+  await pollUntilComplete(id);
 })();`,
-    sseBrowser: `// Real-time tracking in Browser
+    sseBrowser: `// Browser - Send email and poll for status
 async function sendAndTrackEmail() {
   // Send email
   const res = await fetch('https://smtp-service-server.vercel.app/api/email/send', {
@@ -255,40 +256,38 @@ async function sendAndTrackEmail() {
   const data = await res.json();
   console.log('📬 Email queued:', data.id);
   
-  // Track in real-time using EventSource
-  const eventSource = new EventSource(
-    \`https://smtp-service-server.vercel.app/api/email/events/\${data.id}\`
-  );
-  
-  eventSource.onmessage = (event) => {
-    const update = JSON.parse(event.data);
-    console.log('📨 Status update:', update.status);
+  // Poll for status every 2 seconds
+  const pollInterval = setInterval(async () => {
+    const statusRes = await fetch(
+      \`https://smtp-service-server.vercel.app/api/email/status/\${data._id}\`,
+      { headers: { 'x-api-key': 'YOUR_API_KEY_HERE' } }
+    );
     
-    // Update UI based on status
-    document.getElementById('status').textContent = update.status;
+    const statusData = await statusRes.json();
+    console.log('📨 Status:', statusData.status);
     
-    if (update.status === 'sent' || update.status === 'failed') {
-      eventSource.close();
-      console.log('✅ Tracking complete');
+    // Update UI
+    document.getElementById('status').textContent = statusData.status;
+    
+    if (statusData.status === 'sent' || statusData.status === 'failed') {
+      clearInterval(pollInterval);
+      console.log('✅ Email delivery complete');
     }
-  };
-  
-  eventSource.onerror = (error) => {
-    console.error('❌ Connection error:', error);
-    eventSource.close();
-  };
+  }, 2000);
 }`,
 
-    ssePython: `# Real-time tracking with Python
+    ssePython: `# Python - Send email and poll for status
 import requests
-import json
-from sseclient import SSEClient
+import time
+
+API_URL = 'https://smtp-service-server.vercel.app'
+API_KEY = 'YOUR_API_KEY_HERE'
 
 # Send email
-url = 'https://smtp-service-server.vercel.app/api/email/send'
+url = f'{API_URL}/api/email/send'
 headers = {
     'Content-Type': 'application/json',
-    'x-api-key': 'YOUR_API_KEY_HERE'
+    'x-api-key': API_KEY
 }
 data = {
     'to': 'recipient@example.com',
@@ -301,19 +300,20 @@ email_data = res.json()
 email_id = email_data['id']
 print(f'📬 Email queued: {email_id}')
 
-# Track in real-time
-events_url = f'https://smtp-service-server.vercel.app/api/email/events/{email_id}'
-messages = SSEClient(events_url)
-
-for msg in messages:
-    if msg.data:
-        update = json.loads(msg.data)
-        print(f'📨 Status: {update["status"]}')
-        
-        if update['status'] in ['sent', 'failed']:
-            break
-
-print('✅ Tracking complete')`,
+# Poll for status
+while True:
+    status_res = requests.get(
+        f'{API_URL}/api/email/status/{email_data._id}',
+        headers={'x-api-key': API_KEY}
+    )
+    status_data = status_res.json()
+    print(f'📨 Status: {status_data["status"]}')
+    
+    if status_data['status'] in ['sent', 'failed']:
+        print('✅ Email delivery complete')
+        break
+    
+    time.sleep(2)  # Wait 2 seconds before next poll`,
   };
 
   const CodeBlock = ({ code, language, id }) => (
@@ -1303,20 +1303,13 @@ print('✅ Tracking complete')`,
 
                 {/* Real-Time Tracking */}
                 <div>
-                  <h3
-                    className="text-xl font-semibold mb-4"
-                    style={{ color: foreground.color }}
-                  >
-                    Real-Time Tracking with SSE
-                  </h3>
-
                   <div className="space-y-6">
                     <div>
                       <h4
                         className="text-lg font-semibold mb-3"
                         style={{ color: primary.color }}
                       >
-                        Node.js with SSE
+                        Node.js
                       </h4>
                       <CodeBlock
                         code={examples.sseNode}
@@ -1344,38 +1337,13 @@ print('✅ Tracking complete')`,
                         className="text-lg font-semibold mb-3"
                         style={{ color: primary.color }}
                       >
-                        Python with SSE
+                        Python
                       </h4>
                       <CodeBlock
                         code={examples.ssePython}
                         language="python"
                         id="sse-python"
                       />
-                      <p
-                        className="text-sm mt-2"
-                        style={{ color: mutedForeground.color }}
-                      >
-                        Note: Requires{" "}
-                        <code
-                          className="px-2 py-1 rounded"
-                          style={{
-                            backgroundColor: secondary.color,
-                            color: secondaryForeground.color,
-                          }}
-                        >
-                          sseclient-py
-                        </code>{" "}
-                        package:
-                        <code
-                          className="px-2 py-1 rounded ml-2"
-                          style={{
-                            backgroundColor: secondary.color,
-                            color: secondaryForeground.color,
-                          }}
-                        >
-                          pip install sseclient-py
-                        </code>
-                      </p>
                     </div>
                   </div>
                 </div>
