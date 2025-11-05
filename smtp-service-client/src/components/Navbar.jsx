@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Menu,
@@ -23,13 +23,17 @@ import logo from "../../public/logo.png";
 
 const Navbar = () => {
   const { user, handleLogout } = useAuth();
-  const { toggleTheme, isSearchOpen, setIsSearchOpen } = useTheme();
+  const { toggleTheme, setIsSearchOpen } = useTheme();
   const { theme, ...legacy } = useThemeStyles();
   const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const [lastScrollY, setLastScrollY] = useState(0);
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+  const [hoveredBounds, setHoveredBounds] = useState(null);
+  const navRef = useRef(null);
+  const linkRefs = useRef([]);
 
   // ✅ Close menu automatically when route changes
   useEffect(() => {
@@ -72,8 +76,29 @@ const Navbar = () => {
 
   const navLinks = user ? [...publicLinks, ...privateLinks] : publicLinks;
 
-  // ✅ Check if current route is /documentations
-  const isDocumentationPage = location.pathname === "/documentations";
+  // Handle hover with precise positioning
+  const handleMouseEnter = (index) => {
+    const linkElement = linkRefs.current[index];
+    const navElement = navRef.current;
+
+    if (linkElement && navElement) {
+      const linkRect = linkElement.getBoundingClientRect();
+      const navRect = navElement.getBoundingClientRect();
+
+      setHoveredBounds({
+        left: linkRect.left - navRect.left,
+        top: linkRect.top - navRect.top,
+        width: linkRect.width,
+        height: linkRect.height,
+      });
+      setHoveredIndex(index);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    setHoveredIndex(null);
+    setHoveredBounds(null);
+  };
 
   return (
     <motion.nav
@@ -87,7 +112,7 @@ const Navbar = () => {
         borderBottom: `1px solid ${legacy.border.color}`,
       }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-8xl mx-auto px-3">
         <div
           className="flex justify-between items-center h-16"
           style={{ color: legacy.foreground.color }}
@@ -107,24 +132,66 @@ const Navbar = () => {
             </span>
           </Link>
 
-          {/* Desktop Nav */}
-          <div className="hidden md:flex md:items-center md:space-x-8">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.href}
-                className="font-medium transition-colors duration-200"
-                style={{ color: legacy.foreground.color }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.color = legacy.primary.color)
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.color = legacy.foreground.color)
-                }
-              >
-                {link.name}
-              </Link>
-            ))}
+          {/* Desktop Nav with smooth sliding background */}
+          <div
+            ref={navRef}
+            className="hidden md:flex relative items-center gap-1"
+          >
+            {/* Animated Background - Positioned absolutely based on hovered element */}
+            <AnimatePresence>
+              {hoveredIndex !== null && hoveredBounds && (
+                <motion.div
+                  key="hover-bg"
+                  className="absolute rounded-sm pointer-events-none"
+                  style={{
+                    backgroundColor: legacy.primary.color,
+                    opacity: 0.12,
+                  }}
+                  initial={{
+                    left: hoveredBounds.left,
+                    top: hoveredBounds.top,
+                    width: hoveredBounds.width,
+                    height: hoveredBounds.height,
+                  }}
+                  animate={{
+                    left: hoveredBounds.left,
+                    top: hoveredBounds.top,
+                    width: hoveredBounds.width,
+                    height: hoveredBounds.height,
+                  }}
+                  exit={{
+                    opacity: 0,
+                  }}
+                  transition={{
+                    type: "spring",
+                    stiffness: 500,
+                    damping: 35,
+                    mass: 0.5,
+                  }}
+                />
+              )}
+            </AnimatePresence>
+
+            {navLinks.map((link, i) => {
+              const isActive = location.pathname === link.href;
+              return (
+                <Link
+                  key={link.name}
+                  ref={(el) => (linkRefs.current[i] = el)}
+                  to={link.href}
+                  className="relative z-10 px-4 py-2 text-sm font-medium transition-colors duration-200 rounded-lg"
+                  style={{
+                    color: isActive
+                      ? legacy.primary.color
+                      : legacy.foreground.color,
+                  }}
+                  onMouseEnter={() => handleMouseEnter(i)}
+                  onMouseLeave={handleMouseLeave}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
 
           {/* Right side controls */}
