@@ -88,7 +88,7 @@ const ApiKeys = () => {
 
   return (
     <div
-      className="min-h-screen flex flex-col items-center justify-start pt-10 px-2 transition-colors duration-300"
+      className="flex flex-col items-center justify-start pt-5 px-2 transition-colors duration-300"
       style={{
         backgroundColor: background.color,
         color: foreground.color,

@@ -185,7 +185,7 @@ const Dashboard = () => {
 
   return (
     <div
-      className="min-h-screen p-4 md:p-6 lg:p-8 transition-colors"
+      className="p-4 md:p-6 lg:p-8 transition-colors"
       style={{ backgroundColor: background.color }}
     >
       <div className="max-w-7xl mx-auto space-y-6">
@@ -214,6 +214,7 @@ const Dashboard = () => {
                 style={{
                   backgroundColor: secondary.color,
                   color: mutedForeground.color,
+                  border: `1px solid ${border.color}`,
                 }}
               >
                 Last updated: {lastUpdated.toLocaleTimeString()}
@@ -391,7 +392,7 @@ const Dashboard = () => {
             className="rounded-xl p-6 shadow-sm transition-all"
             style={{
               backgroundColor: card.color,
-              border: `2px solid ${primary.color}`,
+              border: `1px solid ${border.color}`,
             }}
           >
             <div className="flex items-center gap-2 mb-4">

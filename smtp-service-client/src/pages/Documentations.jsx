@@ -467,7 +467,7 @@ while True:
       <ScrollSearchOverlay />
       <div className="max-w-6xl mx-auto p-2">
         {/* Header */}
-        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
+        <header className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-3 mt-2">
           <div>
             <div className="flex items-center gap-3 mb-2">
               <img
