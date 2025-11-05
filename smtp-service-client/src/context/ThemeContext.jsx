@@ -8,13 +8,20 @@ export const ThemeProvider = ({ children }) => {
       ? "dark"
       : "light";
 
+  // Theme mode: 'light', 'dark', or 'system'
+  const [themeMode, setThemeMode] = useState(() => {
+    if (typeof window !== "undefined") {
+      const stored = localStorage.getItem("themeMode");
+      return stored || "system";
+    }
+    return "system";
+  });
+
+  // Actual applied theme (resolved from themeMode)
   const [theme, setTheme] = useState(() => {
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("theme");
-      const useSystem = localStorage.getItem("useSystemTheme");
-
-      // If user wants to follow system theme or no preference set
-      if (useSystem === "true" || !stored) {
+      const stored = localStorage.getItem("themeMode");
+      if (stored === "system" || !stored) {
         return getSystemTheme();
       }
       return stored;
@@ -22,37 +29,33 @@ export const ThemeProvider = ({ children }) => {
     return "light";
   });
 
-  const [followSystemTheme, setFollowSystemTheme] = useState(() => {
-    if (typeof window !== "undefined") {
-      const useSystem = localStorage.getItem("useSystemTheme");
-      return useSystem === "true" || useSystem === null;
+  // ✅ Update theme when themeMode changes
+  useEffect(() => {
+    let newTheme;
+
+    if (themeMode === "system") {
+      newTheme = getSystemTheme();
+    } else {
+      newTheme = themeMode;
     }
-    return true;
-  });
+
+    setTheme(newTheme);
+    localStorage.setItem("themeMode", themeMode);
+  }, [themeMode]);
 
   // ✅ Apply theme to document
   useEffect(() => {
     document.documentElement.classList.remove("light", "dark");
     document.documentElement.classList.add(theme);
-
-    // Only store theme if not following system
-    if (!followSystemTheme) {
-      localStorage.setItem("theme", theme);
-      localStorage.setItem("useSystemTheme", "false");
-    } else {
-      localStorage.setItem("useSystemTheme", "true");
-      // Store current system theme for reference
-      localStorage.setItem("theme", theme);
-    }
-  }, [theme, followSystemTheme]);
+  }, [theme]);
 
   // ✅ Listen for system theme changes in real time
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
 
     const handleChange = (e) => {
-      // Only update if following system theme
-      if (followSystemTheme) {
+      // Only update if in system mode
+      if (themeMode === "system") {
         setTheme(e.matches ? "dark" : "light");
       }
     };
@@ -66,18 +69,22 @@ export const ThemeProvider = ({ children }) => {
       mediaQuery.addListener(handleChange);
       return () => mediaQuery.removeListener(handleChange);
     }
-  }, [followSystemTheme]);
+  }, [themeMode]);
 
-  // ✅ Toggle theme (this disables system theme following)
+  // ✅ Cycle through themes: light -> dark -> system -> light...
   const toggleTheme = () => {
-    setFollowSystemTheme(false);
-    setTheme((prev) => (prev === "light" ? "dark" : "light"));
+    setThemeMode((prev) => {
+      if (prev === "light") return "dark";
+      if (prev === "dark") return "system";
+      return "light";
+    });
   };
 
-  // ✅ Reset to system theme
-  const resetToSystemTheme = () => {
-    setFollowSystemTheme(true);
-    setTheme(getSystemTheme());
+  // ✅ Set specific theme mode
+  const setThemeModeDirect = (mode) => {
+    if (["light", "dark", "system"].includes(mode)) {
+      setThemeMode(mode);
+    }
   };
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -87,9 +94,9 @@ export const ThemeProvider = ({ children }) => {
     <ThemeContext.Provider
       value={{
         theme,
+        themeMode,
         toggleTheme,
-        resetToSystemTheme,
-        followSystemTheme,
+        setThemeMode: setThemeModeDirect,
         isSearchOpen,
         setIsSearchOpen,
         copiedCode,

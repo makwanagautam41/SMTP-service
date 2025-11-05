@@ -12,8 +12,10 @@ import {
   Moon,
   User,
   Search,
+  Check,
 } from "lucide-react";
 import { MdOutlineDocumentScanner } from "react-icons/md";
+import { PiDevicesLight } from "react-icons/pi";
 import { TbLockAccess } from "react-icons/tb";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
@@ -23,7 +25,7 @@ import logo from "../../public/logo.png";
 
 const Navbar = () => {
   const { user, handleLogout } = useAuth();
-  const { toggleTheme, setIsSearchOpen } = useTheme();
+  const { themeMode, setThemeMode, setIsSearchOpen } = useTheme();
   const { theme, ...legacy } = useThemeStyles();
   const location = useLocation();
 
@@ -32,8 +34,11 @@ const Navbar = () => {
   const [lastScrollY, setLastScrollY] = useState(0);
   const [hoveredIndex, setHoveredIndex] = useState(null);
   const [hoveredBounds, setHoveredBounds] = useState(null);
+  const [isThemeMenuOpen, setIsThemeMenuOpen] = useState(false);
+
   const navRef = useRef(null);
   const linkRefs = useRef([]);
+  const themeMenuRef = useRef(null);
 
   // ✅ Close menu automatically when route changes
   useEffect(() => {
@@ -56,6 +61,24 @@ const Navbar = () => {
     window.addEventListener("scroll", handleScroll, { passive: true });
     return () => window.removeEventListener("scroll", handleScroll);
   }, [lastScrollY, isOpen]);
+
+  // Close theme menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        themeMenuRef.current &&
+        !themeMenuRef.current.contains(event.target)
+      ) {
+        setIsThemeMenuOpen(false);
+      }
+    };
+
+    if (isThemeMenuOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
+    }
+  }, [isThemeMenuOpen]);
 
   const toggleMenu = () => setIsOpen((prev) => !prev);
 
@@ -99,6 +122,19 @@ const Navbar = () => {
     setHoveredIndex(null);
     setHoveredBounds(null);
   };
+
+  const themeOptions = [
+    { value: "light", label: "Light", icon: Sun },
+    { value: "dark", label: "Dark", icon: Moon },
+    { value: "system", label: "System", icon: PiDevicesLight },
+  ];
+
+  const getCurrentThemeIcon = () => {
+    const option = themeOptions.find((opt) => opt.value === themeMode);
+    return option ? option.icon : Sun;
+  };
+
+  const ThemeIcon = getCurrentThemeIcon();
 
   return (
     <motion.nav
@@ -196,18 +232,81 @@ const Navbar = () => {
 
           {/* Right side controls */}
           <div className="flex items-center gap-2">
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-2 rounded-full transition-all duration-300"
-              style={{
-                backgroundColor: legacy.secondary.color,
-                color: legacy.secondaryForeground.color,
-              }}
-              aria-label="Toggle Theme"
-            >
-              {theme === "light" ? <Moon size={22} /> : <Sun size={22} />}
-            </button>
+            {/* Theme Toggle with Dropdown */}
+            <div className="relative" ref={themeMenuRef}>
+              <button
+                onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
+                className="p-2 rounded-full transition-all duration-300"
+                style={{
+                  backgroundColor: legacy.secondary.color,
+                  color: legacy.secondaryForeground.color,
+                }}
+                aria-label="Toggle Theme"
+              >
+                <ThemeIcon size={22} />
+              </button>
+
+              {/* Theme Dropdown Menu */}
+              <AnimatePresence>
+                {isThemeMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -10 }}
+                    transition={{ duration: 0.2 }}
+                    className="absolute right-0 mt-2 w-40 rounded-lg shadow-lg overflow-hidden"
+                    style={{
+                      backgroundColor: legacy.background.color,
+                      border: `1px solid ${legacy.border.color}`,
+                    }}
+                  >
+                    {themeOptions.map((option) => {
+                      const Icon = option.icon;
+                      const isSelected = themeMode === option.value;
+                      return (
+                        <button
+                          key={option.value}
+                          onClick={() => {
+                            setThemeMode(option.value);
+                            setIsThemeMenuOpen(false);
+                          }}
+                          className="w-full flex items-center justify-between px-4 py-2.5 text-sm transition-colors duration-200"
+                          style={{
+                            color: legacy.foreground.color,
+                            backgroundColor: isSelected
+                              ? legacy.secondary.color
+                              : "transparent",
+                          }}
+                          onMouseEnter={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.backgroundColor =
+                                legacy.secondary.color;
+                            }
+                          }}
+                          onMouseLeave={(e) => {
+                            if (!isSelected) {
+                              e.currentTarget.style.backgroundColor =
+                                "transparent";
+                            }
+                          }}
+                        >
+                          <div className="flex items-center gap-2">
+                            <Icon size={16} />
+                            <span>{option.label}</span>
+                          </div>
+                          {isSelected && (
+                            <Check
+                              size={16}
+                              style={{ color: legacy.primary.color }}
+                            />
+                          )}
+                        </button>
+                      );
+                    })}
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             {/* Search Button - Desktop */}
             {location.pathname === "/documentations" && (
@@ -320,6 +419,51 @@ const Navbar = () => {
                   <X size={26} />
                 </button>
               </div>
+
+              {/* Theme Toggle in Mobile */}
+              {/* <div
+                className="pb-4 mb-2 border-b"
+                style={{ borderColor: legacy.border.color }}
+              >
+                <div
+                  className="text-xs font-medium mb-2 px-3"
+                  style={{ color: legacy.mutedForeground.color }}
+                >
+                  Theme
+                </div>
+                <div className="space-y-1">
+                  {themeOptions.map((option) => {
+                    const Icon = option.icon;
+                    const isSelected = themeMode === option.value;
+                    return (
+                      <button
+                        key={option.value}
+                        onClick={() => {
+                          setThemeMode(option.value);
+                        }}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg transition-colors duration-200"
+                        style={{
+                          color: legacy.foreground.color,
+                          backgroundColor: isSelected
+                            ? legacy.secondary.color
+                            : "transparent",
+                        }}
+                      >
+                        <div className="flex items-center gap-3">
+                          <Icon size={18} />
+                          <span className="font-medium">{option.label}</span>
+                        </div>
+                        {isSelected && (
+                          <Check
+                            size={18}
+                            style={{ color: legacy.primary.color }}
+                          />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div> */}
 
               {/* Links */}
               {navLinks.map((link) => {
