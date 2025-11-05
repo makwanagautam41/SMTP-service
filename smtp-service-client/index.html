@@ -10,4 +10,13 @@
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
+  <script>
+    const theme = localStorage.getItem("themeMode");
+    const systemDark = window.matchMedia(
+      "(prefers-color-scheme: dark)"
+    ).matches;
+    const applied =
+      theme === "dark" || (theme === "system" && systemDark) ? "dark" : "light";
+    document.documentElement.classList.add(applied);
+  </script>
 </html>
