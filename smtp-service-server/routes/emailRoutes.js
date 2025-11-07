@@ -1,24 +1,30 @@
-// routes/emailRoutes.js
 import express from "express";
 import Email from "../models/Email.js";
 import { info } from "../utils/logger.js";
 import { apiKeyAuth } from "../middleware/apiKeyAuth.js";
+import { getWorker } from "../workers/worker.js";
 
 const router = express.Router();
 
-/**
- * POST /api/email/send
- * Body: {  to, subject, text, html, meta }
- * This queues the email in MongoDB for worker to pick up.
- */
+function wakeWorker() {
+  try {
+    setImmediate(() => {
+      getWorker()
+        .tick()
+        .catch((e) => {});
+      setTimeout(() => getWorker().logCacheSize(), 0);
+    });
+  } catch {}
+}
+
 router.post("/send", apiKeyAuth, async (req, res) => {
   try {
     const { to, subject, text, html, meta, type } = req.body;
     const from = req.fromEmail;
     const user = req.fromUserId;
-    if (!from || !to) {
+    if (!from || !to)
       return res.status(400).json({ error: "from and to required" });
-    }
+
     const email = await Email.create({
       from,
       to,
@@ -30,6 +36,9 @@ router.post("/send", apiKeyAuth, async (req, res) => {
       user,
     });
     info("Queued email id:", email._id);
+
+    wakeWorker();
+
     res.status(201).json({ success: true, id: email._id });
   } catch (err) {
     console.error(err);
@@ -37,15 +46,12 @@ router.post("/send", apiKeyAuth, async (req, res) => {
   }
 });
 
-/**
- * GET status
- */
 router.get("/status/:id", async (req, res) => {
   try {
     const e = await Email.findById(req.params.id).lean();
     if (!e) return res.status(404).json({ error: "not found" });
     res.json(e);
-  } catch (err) {
+  } catch {
     res.status(500).json({ error: "server error" });
   }
 });
@@ -53,13 +59,10 @@ router.get("/status/:id", async (req, res) => {
 router.get("/status", async (req, res) => {
   try {
     const emails = await Email.find({ from: req.body.email }).lean();
-
-    if (!emails || emails.length === 0) {
+    if (!emails || emails.length === 0)
       return res
         .status(404)
         .json({ error: "No emails found for this address" });
-    }
-
     res.json(emails);
   } catch (err) {
     console.error(err);
@@ -67,12 +70,9 @@ router.get("/status", async (req, res) => {
   }
 });
 
-/**
- * Optional immediate send (blocking) - use with caution
- */
 router.get("/emails", async (req, res) => {
   try {
-    const limit = parseInt(req.query.limit) || 50; // default 50
+    const limit = parseInt(req.query.limit) || 50;
     const emails = await Email.find({})
       .sort({ createdAt: -1 })
       .limit(limit)

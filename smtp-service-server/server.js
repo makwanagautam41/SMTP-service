@@ -3,7 +3,8 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import emailRoutes from "./routes/emailRoutes.js";
-import { startWorker } from "./workers/emailWorker.js";
+// import { startWorker } from "./workers/emailWorker.js";
+import { getWorker } from "./workers/worker.js";
 import startSmtpServer from "./smtp/smtpServer.js";
 import "./models/User.js";
 import { info } from "./utils/logger.js";
@@ -36,7 +37,7 @@ app.use(`${API_PREFIX}/email`, emailEventsRoutes);
   await connectDB(process.env.MONGO_URI);
 
   // start worker
-  startWorker(process.env);
+  getWorker();
 
   // optional SMTP server
   // if (
