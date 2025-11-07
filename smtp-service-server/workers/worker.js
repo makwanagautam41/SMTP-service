@@ -229,12 +229,31 @@ function createWorker(env) {
       const valid = await validateEmailDomain(claimed.to);
       if (!valid) {
         const msg = "Domain not found or has no MX records";
-        await Email.updateOne(
+        const r = await Email.updateOne(
           { _id: claimed._id, status: "sending", processingBy: WORKER_ID },
-          { $set: { status: "failed", lastError: msg, nextAttemptAt: null }, $inc: { attempts: 1 }, $unset: { processingBy: 1, claimedAt: 1 } }
+          {
+            $set: { status: "failed", lastError: msg, nextAttemptAt: null },
+            $inc: { attempts: 1 },
+            $unset: { processingBy: 1, claimedAt: 1 },
+          }
         );
-        emitEmailEvent(claimed._id.toString(), { status: "failed", error: msg });
-        error(`❌ Worker ${WORKER_ID}: invalid domain for ${claimed.to} → ${msg}`);
+        if (r.modifiedCount === 0) {
+          await Email.updateOne(
+            { _id: claimed._id, status: "sending" },
+            {
+              $set: { status: "failed", lastError: msg, nextAttemptAt: null },
+              $inc: { attempts: 1 },
+              $unset: { processingBy: 1, claimedAt: 1 },
+            }
+          );
+        }
+        emitEmailEvent(claimed._id.toString(), {
+          status: "failed",
+          error: msg,
+        });
+        error(
+          `❌ Worker ${WORKER_ID}: invalid domain for ${claimed.to} → ${msg}`
+        );
         return;
       }
 
@@ -255,11 +274,16 @@ function createWorker(env) {
         };
         sender = env.SMTP_RELAY_USER;
         cacheKey = `public_${env.SMTP_RELAY_USER}`;
-        info(`📤 Worker ${WORKER_ID}: PUBLIC SMTP for ${claimed.type} → ${claimed.to}`);
+        info(
+          `📤 Worker ${WORKER_ID}: PUBLIC SMTP for ${claimed.type} → ${claimed.to}`
+        );
       } else {
         const apiKey = await ApiKey.findOne({ user: claimed.user });
-        if (!apiKey || !apiKey.user) throw new Error("API key not found or invalid");
-        const cred = await AppCredential.findOne({ createdBy: apiKey.user }).select("+appPassword");
+        if (!apiKey || !apiKey.user)
+          throw new Error("API key not found or invalid");
+        const cred = await AppCredential.findOne({
+          createdBy: apiKey.user,
+        }).select("+appPassword");
         if (!cred) throw new Error("User has no app credentials configured");
         const pass = decrypt(cred.appPassword);
         cfg = {
@@ -288,20 +312,59 @@ function createWorker(env) {
         html: claimed.html,
       });
 
-      await Email.updateOne(
+      const r = await Email.updateOne(
         { _id: claimed._id, status: "sending", processingBy: WORKER_ID },
-        { $set: { status: "sent", lastError: "", nextAttemptAt: null }, $inc: { attempts: 1 }, $unset: { processingBy: 1, claimedAt: 1 } }
+        {
+          $set: { status: "sent", lastError: "", nextAttemptAt: null },
+          $inc: { attempts: 1 },
+          $unset: { processingBy: 1, claimedAt: 1 },
+        }
       );
+      if (r.modifiedCount === 0) {
+        await Email.updateOne(
+          { _id: claimed._id, status: "sending" },
+          {
+            $set: { status: "sent", lastError: "", nextAttemptAt: null },
+            $inc: { attempts: 1 },
+            $unset: { processingBy: 1, claimedAt: 1 },
+          }
+        );
+      }
 
       emitEmailEvent(claimed._id.toString(), "sent");
       info(`✅ Worker ${WORKER_ID}: sent ${claimed._id}`);
     } catch (e) {
       const msg = e?.message || "Unknown email send error";
-      const delay = Math.min(30000 * Math.pow(2, claimed.attempts || 0), 300000);
-      await Email.updateOne(
-        { _id: claimed._id, status: "sending", processingBy: WORKER_ID },
-        { $set: { status: "failed", lastError: msg, nextAttemptAt: new Date(Date.now() + delay) }, $inc: { attempts: 1 }, $unset: { processingBy: 1, claimedAt: 1 } }
+      const delay = Math.min(
+        30000 * Math.pow(2, claimed.attempts || 0),
+        300000
       );
+      const r = await Email.updateOne(
+        { _id: claimed._id, status: "sending", processingBy: WORKER_ID },
+        {
+          $set: {
+            status: "failed",
+            lastError: msg,
+            nextAttemptAt: new Date(Date.now() + delay),
+          },
+          $inc: { attempts: 1 },
+          $unset: { processingBy: 1, claimedAt: 1 },
+        }
+      );
+      if (r.modifiedCount === 0) {
+        await Email.updateOne(
+          { _id: claimed._id, status: "sending" },
+          {
+            $set: {
+              status: "failed",
+              lastError: msg,
+              nextAttemptAt: new Date(Date.now() + delay),
+            },
+            $inc: { attempts: 1 },
+            $unset: { processingBy: 1, claimedAt: 1 },
+          }
+        );
+      }
       emitEmailEvent(claimed._id.toString(), { status: "failed", error: msg });
       error(`❌ Worker ${WORKER_ID}: fail ${claimed._id} → ${msg}`);
     }
@@ -321,20 +384,24 @@ function createWorker(env) {
     }
     info(`⚙️ Worker ${WORKER_ID}: processing ${claimedBatch.length} emails.`);
     const chunks = [];
-    for (let i = 0; i < claimedBatch.length; i += MAX_PARALLEL) chunks.push(claimedBatch.slice(i, i + MAX_PARALLEL));
-    for (const chunk of chunks) await Promise.allSettled(chunk.map((e) => processClaimed(e)));
+    for (let i = 0; i < claimedBatch.length; i += MAX_PARALLEL)
+      chunks.push(claimedBatch.slice(i, i + MAX_PARALLEL));
+    for (const chunk of chunks)
+      await Promise.allSettled(chunk.map((e) => processClaimed(e)));
     return { processed: claimedBatch.length };
   }
 
   function logCacheSize() {
-    info(`🧹 Worker ${WORKER_ID}: transporter cache size ${transporterCache.size}`);
+    info(
+      `🧹 Worker ${WORKER_ID}: transporter cache size ${transporterCache.size}`
+    );
   }
 
   return { tick, logCacheSize, id: WORKER_ID };
 }
 
 export function getWorker() {
-  if (!globalThis.__emailWorker) globalThis.__emailWorker = createWorker(process.env);
+  if (!globalThis.__emailWorker)
+    globalThis.__emailWorker = createWorker(process.env);
   return globalThis.__emailWorker;
 }
-

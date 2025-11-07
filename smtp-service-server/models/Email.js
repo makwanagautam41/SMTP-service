@@ -1,45 +1,30 @@
-// models/Email.js
 import mongoose from "mongoose";
 
-const emailSchema = new mongoose.Schema(
+const EmailSchema = new mongoose.Schema(
   {
     from: { type: String, required: true },
-    to: { type: String, required: true }, // comma-separated or single
-    subject: { type: String, default: "" },
-    text: { type: String, default: "" },
-    html: { type: String, default: "" },
-
-    // internal delivery data
+    to: { type: String, required: true },
+    subject: { type: String },
+    text: { type: String },
+    html: { type: String },
+    meta: { type: mongoose.Schema.Types.Mixed },
+    type: { type: String },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
       enum: ["pending", "sending", "sent", "failed"],
       default: "pending",
+      index: true,
     },
     attempts: { type: Number, default: 0 },
     lastError: { type: String, default: "" },
-    nextAttemptAt: { type: Date, default: Date.now },
-    type: {
-      type: String,
-      required: false,
-      trim: true,
-    },
-    user: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: false,
-    },
-    meta: { type: Object, default: {} }, // arbitrary metadata
-    createdAt: { type: Date, default: Date.now },
-    updatedAt: { type: Date, default: Date.now },
+    nextAttemptAt: { type: Date, default: new Date(0), index: true },
+    processingBy: { type: String, default: null, index: true },
+    claimedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true }
+  { timestamps: true, strict: true }
 );
 
-emailSchema.index({ status: 1, nextAttemptAt: 1 }); // for efficient polling
+EmailSchema.index({ status: 1, nextAttemptAt: 1, createdAt: 1 });
 
-emailSchema.pre("save", function (next) {
-  this.updatedAt = Date.now();
-  next();
-});
-
-export default mongoose.model("Email", emailSchema);
+export default mongoose.models.Email || mongoose.model("Email", EmailSchema);
