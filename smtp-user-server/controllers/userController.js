@@ -64,43 +64,129 @@ export const registerUser = async (req, res) => {
       password: hashedPassword,
       verificationToken: hashedToken,
     });
-
     await user.save();
 
     const verifyUrl = `${
       process.env.CLIENT_URL || "http://localhost:5173"
     }/verify/${rawToken}`;
 
-    // Send verification email
-    try {
-      await axios.post(
-        "https://smtp-service-server.vercel.app/api/email/send",
-        // "http://localhost:5000/api/email/send",
-        {
-          type,
-          from: process.env.SMTP_RELAY_USER,
-          to: email,
-          subject: "Verify your account",
-          html: `
-          <div style="font-family:sans-serif;padding:20px;">
-            <h2>Welcome, ${name}!</h2>
-            <p>Click below to verify your email:</p>
-            <a href="${verifyUrl}" style="padding:10px 20px;background:#4f46e5;color:#fff;border-radius:6px;text-decoration:none;">Verify Email</a>
-            <p>Or copy this link: ${verifyUrl}</p>
+    const API_BASE = (
+      process.env.SMTP_LITE_BASE_URL ||
+      process.env.SMTP_LITE_API_URL ||
+      "https://smtp-service-server.vercel.app"
+    ).replace(/\/+$/, "");
+    const SEND_URL = /\/api\/email\/send$/.test(API_BASE)
+      ? API_BASE
+      : `${API_BASE}/api/email/send`;
+    const EVENTS_URL_BASE = (
+      process.env.SMTP_LITE_EVENTS_URL || `${API_BASE}/api/email/events`
+    ).replace(/\/+$/, "");
+    const API_KEY = process.env.SMTP_LITE_API_KEY || "";
+
+    const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#f6f7fb;padding:24px;color:#111;">
+        <div style="max-width:640px;margin:auto;background:#ffffff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);overflow:hidden">
+          <div style="background:#0f172a;color:#ffffff;padding:16px 20px;font-weight:700">Verify your email</div>
+          <div style="padding:22px 20px;line-height:1.6">
+            <h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Hello ${name},</h2>
+            <p>Thank you for registering. Please confirm your email address to activate your account.</p>
+            <p style="margin:18px 0">
+              <a href="${verifyUrl}" style="background:#4f46e5;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;display:inline-block">Confirm email</a>
+            </p>
+            <p>If the button does not work, copy and paste this link into your browser:</p>
+            <p style="word-break:break-all;color:#334155">${verifyUrl}</p>
+            <p style="margin-top:20px;color:#475569;font-size:14px">If you did not create this account, you can ignore this message.</p>
           </div>
-        `,
-        }
-      );
-    } catch (emailErr) {
-      console.error("Email Sending Error:", emailErr);
+          <div style="background:#f8fafc;color:#64748b;padding:12px 20px;font-size:12px;text-align:center">
+            This message was sent automatically. Please do not reply.
+          </div>
+        </div>
+      </div>
+    `;
+
+    const sendResp = await axios.post(
+      SEND_URL,
+      {
+        type,
+        from: process.env.SMTP_RELAY_USER,
+        to: email,
+        subject: "Verify your email",
+        html,
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+        },
+      }
+    );
+
+    const emailId = sendResp?.data?.id;
+    if (!emailId)
+      return res
+        .status(201)
+        .json({ message: "User registered. Verification email queued." });
+
+    const controller = new AbortController();
+    const timeoutMs = Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000);
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+    const sse = await fetch(`${EVENTS_URL_BASE}/${emailId}`, {
+      headers: { ...(API_KEY ? { "x-api-key": API_KEY } : {}) },
+      signal: controller.signal,
+    });
+
+    if (!sse.ok || !sse.body) {
+      clearTimeout(timer);
+      return res
+        .status(201)
+        .json({ message: "User registered. Verification email queued." });
     }
 
-    res.status(201).json({
-      message: "User registered successfully. Verification email sent!",
+    const reader = sse.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let finalStatus = "queued";
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split("\n\n");
+      buffer = parts.pop();
+      for (const chunk of parts) {
+        const line = chunk.split("\n").find((l) => l.startsWith("data:"));
+        if (!line) continue;
+        const json = line.slice(5).trim();
+        try {
+          const evt = JSON.parse(json);
+          if (evt?.status) {
+            finalStatus = evt.status;
+            if (finalStatus === "sent" || finalStatus === "failed") {
+              try {
+                await reader.cancel();
+              } catch {}
+              clearTimeout(timer);
+              return res.status(201).json({
+                message:
+                  finalStatus === "sent"
+                    ? "User registered successfully. Verification email sent."
+                    : "User registered. Verification email failed to send.",
+                emailId,
+              });
+            }
+          }
+        } catch {}
+      }
+    }
+
+    clearTimeout(timer);
+    return res.status(201).json({
+      message: `User registered. Verification email status: ${finalStatus}.`,
+      emailId,
     });
   } catch (err) {
-    console.error("Register Error:", err);
-    res.status(500).json({ message: "Server error: " + err.message });
+    return res.status(500).json({ message: "Server error: " + err.message });
   }
 };
 
