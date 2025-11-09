@@ -177,9 +177,9 @@ const Navbar = () => {
               {hoveredIndex !== null && hoveredBounds && (
                 <motion.div
                   key="hover-bg"
-                  className="absolute rounded-sm pointer-events-none"
+                  className="absolute rounded-xs border-1 pointer-events-none"
                   style={{
-                    backgroundColor: legacy.primary.color,
+                    backgroundColor: "#3b3b3b",
                     opacity: 0.12,
                   }}
                   initial={{

@@ -25,7 +25,7 @@ const handleRequest = async (axiosPromise) => {
 
 export const registerUser = async (name, email, password) => {
   return await handleRequest(
-    API.post("/users/register", { type: "register", name, email, password })
+    API.post("/users/register", { name, email, password })
   );
 };
 
