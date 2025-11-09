@@ -11,7 +11,6 @@ import ProtectedRoute from "./pages/ProtectedRoute";
 import Navbar from "./components/Navbar";
 import ApiKeys from "./pages/ApiKeys";
 import Documentations from "./pages/Documentations";
-import CheckColor from "./pages/CheckColor";
 import Footer from "./components/Footer";
 import { useThemeStyles } from "./utils/useThemeStyles";
 import AppCredentials from "./pages/AppCredentials";
