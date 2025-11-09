@@ -3,9 +3,7 @@ import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
 import emailRoutes from "./routes/emailRoutes.js";
-// import { startWorker } from "./workers/emailWorker.js";
 import { getWorker } from "./workers/worker.js";
-import startSmtpServer from "./smtp/smtpServer.js";
 import "./models/User.js";
 import { info } from "./utils/logger.js";
 import cookieParser from "cookie-parser";
@@ -38,15 +36,6 @@ app.use(`${API_PREFIX}/email`, emailEventsRoutes);
 
   // start worker
   getWorker();
-
-  // optional SMTP server
-  // if (
-  //   process.env.ENABLE_SMTP_SERVER === "true" ||
-  //   process.env.ENABLE_SMTP_SERVER === "1"
-  // ) {
-  //   const port = Number(process.env.SMTP_LISTEN_PORT || 2525);
-  //   startSmtpServer(port);
-  // }
 
   app.listen(PORT, () => {
     info(`🚀 API server listening on port ${PORT}`);

@@ -198,7 +198,7 @@ const checkStatus = async (emailId) => {
 
         <div className="flex flex-wrap justify-center gap-4">
           <button
-            onClick={() => navigate("/documentations")}
+            onClick={() => navigate("/docs")}
             className="px-6 py-3 rounded-lg font-semibold border transition-all duration-300 hover:scale-105"
             style={{
               borderColor: border.color,
