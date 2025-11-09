@@ -85,7 +85,7 @@ const Navbar = () => {
   const publicLinks = [
     {
       name: "Documentations",
-      href: "/documentations",
+      href: "/docs",
       icon: MdOutlineDocumentScanner,
     },
   ];
