@@ -75,7 +75,7 @@ const ConfirmDeleteModal = ({
                 style={{
                   border: `1px solid ${border.color}`,
                   backgroundColor: background.color,
-                  color: foreground.color,
+                  color: foreground.color, 
                 }}
               />
 
