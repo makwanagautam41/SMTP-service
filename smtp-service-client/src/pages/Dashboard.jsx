@@ -144,7 +144,6 @@ const Dashboard = () => {
 
   const { summary, recentEmails, pagination } = data;
 
-  // Chart data for pie chart
   const pieData = [
     { name: "Sent", value: summary?.sentEmails || 0, color: "#22c55e" },
     { name: "Failed", value: summary?.failedEmails || 0, color: "#ef4444" },
@@ -189,7 +188,6 @@ const Dashboard = () => {
       style={{ backgroundColor: background.color }}
     >
       <div className="max-w-7xl mx-auto space-y-6">
-        {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
             <h1
@@ -207,7 +205,6 @@ const Dashboard = () => {
           </div>
 
           <div className="flex items-center gap-3">
-            {/* Last Updated Timestamp */}
             {lastUpdated && (
               <div
                 className="text-sm px-4 py-3 rounded-lg"
@@ -221,7 +218,6 @@ const Dashboard = () => {
               </div>
             )}
 
-            {/* Refresh Button */}
             <button
               onClick={handleRefresh}
               disabled={refreshing}
@@ -386,7 +382,6 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Last Sent Email */}
         {summary?.lastSent && (
           <div
             className="rounded-xl p-6 shadow-sm transition-all"

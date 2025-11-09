@@ -37,7 +37,7 @@ const sendTokenResponse = (user, res) => {
   }
 };
 
-// ------------------- USER CONTROLLERS ------------------- //
+// USER CONTROLLERS //
 
 // REGISTER USER
 export const registerUser = async (req, res) => {
@@ -208,7 +208,6 @@ export const verifyUser = async (req, res) => {
       return res.status(200).json({ message: "User is already verified" });
     }
 
-    // Verify user
     user.isVerified = true;
     user.verificationToken = null;
     await user.save();
@@ -285,7 +284,7 @@ export const logoutUser = (req, res) => {
   res.status(200).json({ message: "Logged out successfully" });
 };
 
-// ------------------- API KEY CONTROLLERS ------------------- //
+// API KEY CONTROLLERS //
 
 // CREATE API KEY
 export const createApiKey = async (req, res) => {
@@ -554,51 +553,6 @@ export const viewDecryptedAppCredential = async (req, res) => {
     return res.status(500).json({ message: "Server error: " + error.message });
   }
 };
-
-// export const getUserDashboard = async (req, res) => {
-//   try {
-//     const userId = req.user.id;
-
-//     // Aggregate stats
-//     const totalEmails = await Email.countDocuments({ user: userId });
-//     const sentEmails = await Email.countDocuments({
-//       user: userId,
-//       status: "sent",
-//     });
-//     const failedEmails = await Email.countDocuments({
-//       user: userId,
-//       status: "failed",
-//     });
-//     const pendingEmails = await Email.countDocuments({
-//       user: userId,
-//       status: "pending",
-//     });
-
-//     // Last sent email
-//     const lastSent = await Email.findOne({ user: userId, status: "sent" })
-//       .sort({ createdAt: -1 })
-//       .select("createdAt subject to");
-
-//     // Recent emails
-//     const recentEmails = await Email.find({ user: userId })
-//       .sort({ createdAt: -1 })
-//       .limit(10);
-
-//     res.json({
-//       summary: {
-//         totalEmails,
-//         sentEmails,
-//         failedEmails,
-//         pendingEmails,
-//         lastSent,
-//       },
-//       recentEmails,
-//     });
-//   } catch (err) {
-//     console.error("Dashboard Error:", err);
-//     res.status(500).json({ message: "Server error: " + err.message });
-//   }
-// };
 
 export const getUserDashboard = async (req, res) => {
   try {

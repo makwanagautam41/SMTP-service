@@ -1,4 +1,3 @@
-// services/mxLookup.js
 import dns from "dns/promises";
 
 export async function getMxHosts(domain) {

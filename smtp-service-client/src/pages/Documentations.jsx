@@ -782,7 +782,7 @@ while True:
                 </p>
               </div>
 
-              {/* 🚨 New Notice: App Credentials Requirement */}
+              {/* New Notice: App Credentials Requirement */}
               <div
                 className="mt-4 p-4 rounded flex items-start gap-2 transition-colors duration-300"
                 style={{

@@ -30,7 +30,7 @@ const Verify = () => {
       setLoading(false);
     };
     if (token) verify();
-  }, [token, verifyAccount]);
+  }, []);
 
   return (
     <div

@@ -37,7 +37,6 @@ const App = () => {
           <Route path="/verify/:token" element={<VerifyAccount />} />
           <Route path="/docs" element={<Documentations />} />
           <Route path="/quick-start" element={<QuickStart />} />
-          <Route path="/checkcolor" element={<CheckColor />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

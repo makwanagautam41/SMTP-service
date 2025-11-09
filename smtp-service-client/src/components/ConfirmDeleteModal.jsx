@@ -41,7 +41,6 @@ const ConfirmDeleteModal = ({
             exit={{ scale: 0.9, opacity: 0, y: 40 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            {/* Close button */}
             <button
               onClick={onCancel}
               className="absolute top-3 right-3 p-1 rounded-md hover:bg-neutral-200/20 transition"
@@ -50,7 +49,6 @@ const ConfirmDeleteModal = ({
               <X size={20} />
             </button>
 
-            {/* Content */}
             <div className="flex flex-col items-center text-center gap-4">
               <AlertTriangle size={48} color="#f59e0b" />
               <h2 className="text-xl font-semibold">Delete App Credentials?</h2>
@@ -62,7 +60,6 @@ const ConfirmDeleteModal = ({
                 Please type the following sentence to confirm deletion:
               </p>
 
-              {/* Highlighted sentence to type */}
               <p className="text-sm font-medium px-3 py-2 rounded-md bg-red-500/10 border border-red-500 text-red-500">
                 yes i want to delete{" "}
                 <span className="font-semibold text-red-600">"{appName}"</span>{" "}
@@ -82,7 +79,6 @@ const ConfirmDeleteModal = ({
                 }}
               />
 
-              {/* Buttons */}
               <div className="flex gap-3 mt-4 w-full">
                 <button
                   onClick={onCancel}

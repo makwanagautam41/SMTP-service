@@ -40,7 +40,7 @@ const Navbar = () => {
   const linkRefs = useRef([]);
   const themeMenuRef = useRef(null);
 
-  // ✅ Close menu automatically when route changes
+  // Close menu automatically when route changes
   useEffect(() => {
     setIsOpen(false);
   }, [location]);
@@ -153,7 +153,6 @@ const Navbar = () => {
           className="flex justify-between items-center h-16"
           style={{ color: legacy.foreground.color }}
         >
-          {/* Logo */}
           <Link to="/" className="flex items-center space-x-2">
             <img
               src={logo}
@@ -232,7 +231,6 @@ const Navbar = () => {
 
           {/* Right side controls */}
           <div className="flex items-center gap-2">
-            {/* Theme Toggle with Dropdown */}
             <div className="relative" ref={themeMenuRef}>
               <button
                 onClick={() => setIsThemeMenuOpen(!isThemeMenuOpen)}
@@ -308,7 +306,7 @@ const Navbar = () => {
               </AnimatePresence>
             </div>
 
-            {/* Search Button - Desktop */}
+            {/* Search Button Desktop */}
             {location.pathname === "/documentations" && (
               <button
                 onClick={() => setIsSearchOpen(true)}
@@ -363,7 +361,6 @@ const Navbar = () => {
               )}
             </div>
 
-            {/* Mobile Menu Toggle */}
             <div className="md:hidden mt-2">
               <button
                 onClick={toggleMenu}

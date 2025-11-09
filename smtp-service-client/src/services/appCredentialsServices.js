@@ -1,6 +1,6 @@
 import API from "./api";
 
-// 🔧 Unified request handler
+// Unified request handler
 const handleRequest = async (axiosPromise) => {
   try {
     const { data } = await axiosPromise;
@@ -18,24 +18,24 @@ const handleRequest = async (axiosPromise) => {
   }
 };
 
-// 📦 Fetch user's App Credentials
+// Fetch user's App Credentials
 export const fetchAppCredentialsService = async () => {
   return await handleRequest(API.get("/users/app/credentials"));
 };
 
-// 🆕 Create App Credentials
+// Create App Credentials
 export const createAppCredentialsService = async (payload) => {
   return await handleRequest(
     API.post("/users/app/create-credentials", payload)
   );
 };
 
-// 🔑 View decrypted password (secure)
+// View decrypted password (secure)
 export const viewDecryptedPasswordService = async (id) => {
   return await handleRequest(API.get(`/users/app/credentials/${id}/decrypted`));
 };
 
-// 🗑️ Delete App Credentials
+// Delete App Credentials
 export const deleteAppCredentialsService = async (id) => {
   return await handleRequest(API.delete(`/users/app/${id}`));
 };

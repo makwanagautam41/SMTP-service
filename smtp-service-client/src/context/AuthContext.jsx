@@ -23,7 +23,6 @@ export const AuthProvider = ({ children }) => {
     checkUser();
   }, []);
 
-  // Login handler
   const handleLogin = async (email, password) => {
     const result = await loginUser(email, password);
     if (result.success) {

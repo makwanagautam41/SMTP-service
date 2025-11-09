@@ -21,7 +21,7 @@ const handleRequest = async (axiosPromise) => {
   }
 };
 
-// ===================== AUTH API FUNCTIONS =====================
+// AUTH API FUNCTIONS
 
 export const registerUser = async (name, email, password) => {
   return await handleRequest(

@@ -12,7 +12,6 @@ export const ApiKeyProvider = ({ children }) => {
   const [apiKeys, setApiKeys] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Fetch API Keys
   const fetchApiKeys = async () => {
     setLoading(true);
     const res = await fetchApiKeysService();
@@ -24,16 +23,14 @@ export const ApiKeyProvider = ({ children }) => {
     setLoading(false);
   };
 
-  // Create new API Key
   const createApiKey = async (name) => {
     const res = await createApiKeyService(name);
     if (res.success && res.data?.apiKey) {
       setApiKeys((prev) => [res.data.apiKey, ...prev]);
     }
-    return res; // return standardized { success, message, data }
+    return res;
   };
 
-  // Delete API Key
   const deleteApiKey = async (id) => {
     const res = await deleteApiKeyService(id);
     if (res.success) {
@@ -42,7 +39,6 @@ export const ApiKeyProvider = ({ children }) => {
     return res;
   };
 
-  // Toggle API Key
   const toggleApiKey = async (id) => {
     const res = await toggleApiKeyStatusService(id);
     if (res.success && res.data?.apiKey) {
