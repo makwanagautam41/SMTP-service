@@ -10,7 +10,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://smtp-lite.vercel.app"],
+    origin: ["http://localhost:5173", "https://smtplite.vercel.app"],
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "x-api-key", "Authorization"],
     credentials: true,
