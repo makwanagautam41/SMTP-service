@@ -21,6 +21,7 @@ import DocumentationSearch from "../components/DocumentationSearch";
 import { useTheme } from "../context/ThemeContext";
 import ScrollSearchOverlay from "../components/ScrollSearchOverlay";
 import CodeBlock from "../components/CodeBlock";
+import { examples, documentationSections } from "../mockData/docsData";
 
 const Documentations = () => {
   const { isSearchOpen, setIsSearchOpen, copiedCode, setCopiedCode } =
@@ -51,263 +52,6 @@ const Documentations = () => {
     legacy,
   } = useThemeStyles();
 
-  const examples = {
-    curl: `curl -X POST \\
-  https://smtp-service-server.vercel.app/api/email/send \\
-  -H 'Content-Type: application/json' \\
-  -H 'x-api-key: YOUR_API_KEY_HERE' \\
-  -d '{
-  "to": "recipient@example.com",
-  "subject": "Hello from SMTP-LITE",
-  "html": "<strong>This is a test email sent via SMTP-LITE.</strong>"
-}'`,
-
-    nodeFetch: `// Node.js with native fetch (Node 18+)
-const res = await fetch('https://smtp-service-server.vercel.app/api/email/send', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': 'YOUR_API_KEY_HERE'
-  },
-  body: JSON.stringify({
-    to: 'recipient@example.com',
-    subject: 'Hello from SMTP-LITE',
-    html: '<strong>This is a test email sent via SMTP-LITE.</strong>'
-  })
-});
-const data = await res.json();
-console.log('Email ID:', data.id);
-
-// To check status, poll the status endpoint:
-// GET https://smtp-service-server.vercel.app/api/email/status/{email._id}`,
-
-    fetchBrowser: `fetch('https://smtp-service-server.vercel.app/api/email/send', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'x-api-key': 'YOUR_API_KEY_HERE'
-  },
-  body: JSON.stringify({
-    to: 'recipient@example.com',
-    subject: 'Hello from SMTP-LITE',
-    html: '<strong>This is a test email sent via SMTP-LITE.</strong>'
-  })
-}).then(r => r.json()).then(data => {
-  console.log('Email ID:', data.id);
-  // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{email._id}
-}).catch(console.error);`,
-
-    pythonRequests: `import requests
-
-url = 'https://smtp-service-server.vercel.app/api/email/send'
-headers = {
-  'Content-Type': 'application/json',
-  'x-api-key': 'YOUR_API_KEY_HERE'
-}
-data = {
-  'to': 'recipient@example.com',
-  'subject': 'Hello from SMTP-LITE',
-  'html': '<strong>This is a test email sent via SMTP-LITE.</strong>'
-}
-res = requests.post(url, json=data, headers=headers)
-response_data = res.json()
-print('Email ID:', response_data['id'])
-
-# To check status, poll the status endpoint:
-# GET https://smtp-service-server.vercel.app/api/email/status/{email._id}`,
-
-    php: `<?php
-$url = 'https://smtp-service-server.vercel.app/api/email/send';
-$data = array(
-    'to' => 'recipient@example.com',
-    'subject' => 'Hello from SMTP-LITE',
-    'html' => '<strong>This is a test email sent via SMTP-LITE.</strong>'
-);
-
-$options = array(
-    'http' => array(
-        'header'  => "Content-Type: application/json\\r\\n" .
-                     "x-api-key: YOUR_API_KEY_HERE\\r\\n",
-        'method'  => 'POST',
-        'content' => json_encode($data)
-    )
-);
-
-$context  = stream_context_create($options);
-$result = file_get_contents($url, false, $context);
-
-if ($result === FALSE) {
-    echo "Error sending email";
-} else {
-    $response = json_decode($result, true);
-    echo "Email ID: " . $response['id'];
-    // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{response._id}
-}
-?>`,
-
-    aspnet: `using System;
-using System.Net.Http;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-
-public class EmailService
-{
-    private static readonly HttpClient client = new HttpClient();
-    
-    public static async Task SendEmail()
-    {
-        var url = "https://smtp-service-server.vercel.app/api/email/send";
-        
-        var emailData = new
-        {
-            to = "recipient@example.com",
-            subject = "Hello from SMTP-LITE",
-            html = "<strong>This is a test email sent via SMTP-LITE.</strong>"
-        };
-        
-        var json = JsonSerializer.Serialize(emailData);
-        var content = new StringContent(json, Encoding.UTF8, "application/json");
-        
-        client.DefaultRequestHeaders.Add("x-api-key", "YOUR_API_KEY_HERE");
-        
-        var response = await client.PostAsync(url, content);
-        var responseString = await response.Content.ReadAsStringAsync();
-        
-        Console.WriteLine($"Response: {responseString}");
-        // To check status, poll: GET https://smtp-service-server.vercel.app/api/email/status/{response._id}
-    }
-}`,
-
-    sseNode: `// Node.js - Send email and poll for status
-const API_URL = "https://smtp-service-server.vercel.app";
-const API_KEY = "YOUR_API_KEY_HERE";
-
-// Send email
-const sendEmail = async () => {
-  const res = await fetch(\`\${API_URL}/api/email/send\`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-api-key": API_KEY,
-    },
-    body: JSON.stringify({
-      to: "recipient@example.com",
-      subject: "Hello from SMTP-LITE",
-      html: "<strong>This is a test email sent via SMTP-LITE.</strong>",
-    }),
-  });
-
-  const data = await res.json();
-  console.log("📬 Email queued with ID:", data.id);
-  return data.id;
-};
-
-// Poll for status
-const checkStatus = async (emailId) => {
-  const res = await fetch(\`\${API_URL}/api/email/status/\${data._id}\`, {
-    headers: { "x-api-key": API_KEY }
-  });
-  const data = await res.json();
-  console.log("📨 Current status:", data.status);
-  return data.status;
-};
-
-// Poll every 2 seconds until complete
-const pollUntilComplete = async (emailId) => {
-  const interval = setInterval(async () => {
-    const status = await checkStatus(emailId);
-    if (status === "sent" || status === "failed") {
-      console.log("✅ Final status:", status);
-      clearInterval(interval);
-    }
-  }, 2000);
-};
-
-// Run
-(async () => {
-  const id = await sendEmail();
-  await pollUntilComplete(id);
-})();`,
-    sseBrowser: `// Browser - Send email and poll for status
-async function sendAndTrackEmail() {
-  // Send email
-  const res = await fetch('https://smtp-service-server.vercel.app/api/email/send', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'x-api-key': 'YOUR_API_KEY_HERE'
-    },
-    body: JSON.stringify({
-      to: 'recipient@example.com',
-      subject: 'Hello from Browser',
-      html: '<strong>Test email</strong>'
-    })
-  });
-  
-  const data = await res.json();
-  console.log('📬 Email queued:', data.id);
-  
-  // Poll for status every 2 seconds
-  const pollInterval = setInterval(async () => {
-    const statusRes = await fetch(
-      \`https://smtp-service-server.vercel.app/api/email/status/\${data._id}\`,
-      { headers: { 'x-api-key': 'YOUR_API_KEY_HERE' } }
-    );
-    
-    const statusData = await statusRes.json();
-    console.log('📨 Status:', statusData.status);
-    
-    // Update UI
-    document.getElementById('status').textContent = statusData.status;
-    
-    if (statusData.status === 'sent' || statusData.status === 'failed') {
-      clearInterval(pollInterval);
-      console.log('✅ Email delivery complete');
-    }
-  }, 2000);
-}`,
-
-    ssePython: `# Python - Send email and poll for status
-import requests
-import time
-
-API_URL = 'https://smtp-service-server.vercel.app'
-API_KEY = 'YOUR_API_KEY_HERE'
-
-# Send email
-url = f'{API_URL}/api/email/send'
-headers = {
-    'Content-Type': 'application/json',
-    'x-api-key': API_KEY
-}
-data = {
-    'to': 'recipient@example.com',
-    'subject': 'Hello from Python',
-    'html': '<strong>Test email</strong>'
-}
-
-res = requests.post(url, json=data, headers=headers)
-email_data = res.json()
-email_id = email_data['id']
-print(f'📬 Email queued: {email_id}')
-
-# Poll for status
-while True:
-    status_res = requests.get(
-        f'{API_URL}/api/email/status/{email_data._id}',
-        headers={'x-api-key': API_KEY}
-    )
-    status_data = status_res.json()
-    print(f'📨 Status: {status_data["status"]}')
-    
-    if status_data['status'] in ['sent', 'failed']:
-        print('✅ Email delivery complete')
-        break
-    
-    time.sleep(2)  # Wait 2 seconds before next poll`,
-  };
-
   const fixBarItems = [
     { id: "overview", icon: <HelpCircle size={16} />, label: "Overview" },
     {
@@ -318,131 +62,14 @@ while True:
     { id: "auth", icon: <Key size={16} />, label: "Authentication" },
     { id: "send", icon: <Send size={16} />, label: "Send Email API" },
     { id: "tracking", icon: <Zap size={16} />, label: "Email Tracking API" },
+    {
+      id: "sse-events",
+      icon: <Radio size={16} />,
+      label: "Real-Time Events (SSE)",
+    },
     { id: "examples", icon: <Code size={16} />, label: "Code Examples" },
     { id: "responses", icon: <AlertCircle size={16} />, label: "Responses" },
   ];
-
-  const documentationSections = useMemo(
-    () => [
-      {
-        id: "overview",
-        title: "Overview",
-        icon: <HelpCircle size={16} />,
-        description:
-          "SMTP-LITE is an email API service that provides delivery tracking via simple API polling. You can send emails through the API and check their status using a unique email ID.",
-        content: [
-          "Track email delivery status using polling",
-          "Simple REST API with JSON payloads",
-          "Secure authentication with API keys",
-          "Supports Node.js, PHP, ASP.NET, Python, and browsers",
-          "Lightweight and reliable delivery tracking system",
-        ],
-      },
-      {
-        id: "send",
-        title: "Send Email API",
-        icon: <Send size={16} />,
-        description:
-          "POST https://smtp-service-server.vercel.app/api/email/send",
-        content: [
-          "Required headers: Content-Type (application/json) and x-api-key",
-          "Request body fields: to (recipient email), subject (email subject), html (email body)",
-          "Returns success response with email ID when queued successfully",
-        ],
-      },
-      {
-        id: "tracking",
-        title: "Email Status Tracking (Polling)",
-        icon: <Radio size={16} />,
-        description:
-          "SMTP-LITE provides a simple endpoint to check email delivery status by polling at intervals (e.g., every 2 seconds).",
-        content: [
-          "Send an email via /api/email/send and receive a unique email ID",
-          "Call /api/email/status/:id to check the current delivery status",
-          "Recommended polling interval: every 2–3 seconds",
-          "Status progression: pending → sending → sent/failed",
-          "Stop polling when final status (sent/failed) is received",
-          "Lightweight and compatible with all environments including Vercel",
-        ],
-      },
-      {
-        id: "app-credentials",
-        title: "App Credentials (SMTP Access)",
-        icon: <Lock size={16} />,
-        description:
-          "To send emails securely using your own Google account, you need to set up App Credentials consisting of your App Name, Google Account Email, and Google App Password.",
-        content: [
-          "Enable 2-Step Verification in your Google account",
-          "Create Google App Password from myaccount.google.com/apppasswords",
-          "Your app password is securely encrypted using AES-256 encryption",
-          "Credentials are only decrypted temporarily when sending emails",
-        ],
-      },
-      {
-        id: "auth",
-        title: "Authentication",
-        icon: <Key size={16} />,
-        description:
-          "All API requests require an API key. Include it in the x-api-key header of every request.",
-        content: [
-          "Get your API key from API Keys Management page",
-          "App Credentials must be added before creating API keys",
-          "Never expose your API key in client-side code",
-          "Use environment variables and make API calls from backend",
-        ],
-      },
-
-      {
-        id: "examples",
-        title: "Code Examples",
-        icon: <Code size={16} />,
-        description:
-          "Complete code examples for various programming languages and platforms using polling",
-        subsections: [
-          {
-            title: "PHP Example",
-            content:
-              "Use file_get_contents or cURL to send emails and poll /status/:id every few seconds.",
-          },
-          {
-            title: "ASP.NET (C#) Example",
-            content:
-              "Use HttpClient to send emails and periodically request status updates.",
-          },
-          {
-            title: "Node.js Example",
-            content:
-              "Send emails via fetch() or axios and poll /status/:id in intervals.",
-          },
-          {
-            title: "Browser Example",
-            content:
-              "Use fetch() to call /status/:id every 2 seconds and update the UI dynamically.",
-          },
-          {
-            title: "Python Example",
-            content:
-              "Use requests to send email and a simple loop to check /status/:id.",
-          },
-        ],
-      },
-      {
-        id: "responses",
-        title: "API Responses",
-        icon: <AlertCircle size={16} />,
-        description: "Understanding API response codes and formats",
-        content: [
-          "Success Response (200): Email queued successfully with ID",
-          "GET /status/:id returns the latest delivery status",
-          "Error Response (400): Invalid request body or missing fields",
-          "Error Response (401): Invalid or missing API key",
-          "Error Response (404): Email ID not found",
-          "Error Response (500): Server error",
-        ],
-      },
-    ],
-    []
-  );
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -1216,6 +843,215 @@ while True:
               </div>
             </section>
 
+            {/* Real-Time Email Events (SSE) */}
+            <section
+              id="sse-events"
+              className="rounded-lg shadow p-6 transition-colors duration-300"
+              style={{
+                backgroundColor: card.color,
+                color: foreground.color,
+                border: `1px solid ${border.color}`,
+              }}
+            >
+              <h2
+                className="text-2xl font-bold mb-4 flex items-center gap-2"
+                style={{ color: primary.color }}
+              >
+                <Radio style={{ color: primary.color }} />
+                Real-Time Email Events (SSE)
+              </h2>
+
+              <p
+                className="leading-relaxed mb-4"
+                style={{ color: mutedForeground.color }}
+              >
+                Server-Sent Events (SSE) provide real-time email delivery status
+                updates without the need for polling. Connect to the events
+                endpoint and receive automatic status updates as your email
+                progresses through the delivery pipeline.
+              </p>
+
+              {/* Endpoint Section */}
+              <div className="mb-6">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Endpoint
+                </h3>
+                <div
+                  className="p-4 rounded-lg font-mono text-sm"
+                  style={{
+                    backgroundColor: secondary.color,
+                    color: secondaryForeground.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
+                  GET
+                  https://smtp-service-server.vercel.app/api/email/events/:id
+                </div>
+                <p
+                  className="text-sm mt-2"
+                  style={{ color: mutedForeground.color }}
+                >
+                  Replace{" "}
+                  <code
+                    className="px-2 py-1 rounded"
+                    style={{
+                      backgroundColor: muted.color,
+                      color: mutedForeground.color,
+                    }}
+                  >
+                    :id
+                  </code>{" "}
+                  with the email ID returned from the send endpoint.
+                </p>
+              </div>
+
+              {/* How It Works */}
+              <div
+                className="p-4 rounded mb-6 transition-colors duration-300"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
+                  🔄 How It Works
+                </h4>
+                <ol className="list-decimal list-inside text-sm space-y-2">
+                  <li>
+                    Send email via <code>/api/email/send</code> and receive
+                    email ID
+                  </li>
+                  <li>
+                    Connect to <code>/api/email/events/:id</code> to start
+                    listening
+                  </li>
+                  <li>Receive real-time status updates as they occur</li>
+                  <li>
+                    Connection automatically closes when email reaches final
+                    status (sent/failed)
+                  </li>
+                </ol>
+              </div>
+
+              {/* Event Stream Format */}
+              <div className="mb-6">
+                <h3
+                  className="text-lg font-semibold mb-2"
+                  style={{ color: foreground.color }}
+                >
+                  Event Stream Format
+                </h3>
+                <p
+                  className="mb-3 text-sm"
+                  style={{ color: mutedForeground.color }}
+                >
+                  The server sends JSON events in SSE format. Each event
+                  contains the email status:
+                </p>
+                <CodeBlock
+                  code={`data: {"id": "68ff93116cd6d04590c93716","status": "pending", "timestamp": "2025-01-15T10:30:00Z"}
+
+data: {"id": "68ff93116cd6d04590c93716","status": "sending", "timestamp": "2025-01-15T10:30:05Z"}
+
+data: {"id": "68ff93116cd6d04590c93716","status": "sent", "timestamp": "2025-01-15T10:30:10Z"}`}
+                  language="text"
+                  id="sse-format"
+                />
+              </div>
+
+              {/* Status Flow */}
+              <div
+                className="p-4 rounded border-l-4 mb-6"
+                style={{
+                  backgroundColor: secondary.color,
+                  borderColor: primary.color,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
+                  📊 Status Flow:
+                </h4>
+                <div
+                  className="flex items-center gap-2 text-sm flex-wrap"
+                  style={{ color: foreground.color }}
+                >
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: muted.color,
+                      color: mutedForeground.color,
+                    }}
+                  >
+                    pending
+                  </span>
+                  <span>→</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: muted.color,
+                      color: foreground.color,
+                    }}
+                  >
+                    sending
+                  </span>
+                  <span>→</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: primary.color,
+                      color: primaryForeground.color,
+                    }}
+                  >
+                    sent
+                  </span>
+                  <span>/</span>
+                  <span
+                    className="px-3 py-1 rounded"
+                    style={{
+                      backgroundColor: hover.secondary,
+                      color: hover.foreground,
+                    }}
+                  >
+                    failed
+                  </span>
+                </div>
+              </div>
+
+              {/* Benefits */}
+              <div
+                className="mt-6 p-4 rounded transition-colors duration-300"
+                style={{
+                  backgroundColor: muted.color,
+                  borderLeft: `4px solid ${primary.color}`,
+                }}
+              >
+                <h4
+                  className="font-semibold mb-2"
+                  style={{ color: primary.color }}
+                >
+                  ✨ Benefits of SSE vs Polling
+                </h4>
+                <ul className="text-sm space-y-1 list-disc list-inside">
+                  <li>
+                    No need to repeatedly call the API - server pushes updates
+                    to you
+                  </li>
+                  <li>Real-time updates with minimal latency</li>
+                  <li>Reduced server load and API calls</li>
+                  <li>Automatic connection management</li>
+                  <li>Native browser support with simple fetch API</li>
+                </ul>
+              </div>
+            </section>
+
             {/* Examples */}
             <section
               id="examples"
@@ -1282,7 +1118,7 @@ while True:
                         Node.js
                       </h4>
                       <CodeBlock
-                        code={examples.sseNode}
+                        code={examples.node}
                         language="javascript"
                         id="sse-node"
                       />
@@ -1296,7 +1132,7 @@ while True:
                         Browser with EventSource
                       </h4>
                       <CodeBlock
-                        code={examples.sseBrowser}
+                        code={examples.browser}
                         language="javascript"
                         id="sse-browser"
                       />
@@ -1310,7 +1146,7 @@ while True:
                         Python
                       </h4>
                       <CodeBlock
-                        code={examples.ssePython}
+                        code={examples.python}
                         language="python"
                         id="sse-python"
                       />

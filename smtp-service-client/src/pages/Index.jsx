@@ -189,7 +189,7 @@ const Index = () => {
                 </Link>
 
                 <Link
-                  to="/documentations"
+                  to="/docs"
                   className="inline-flex items-center justify-center gap-2 border-2 px-7 py-3 rounded-lg transition-all duration-200 text-base md:text-lg font-semibold hover:scale-105"
                   style={{
                     borderColor: border.color,

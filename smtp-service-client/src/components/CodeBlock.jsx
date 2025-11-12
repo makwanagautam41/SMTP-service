@@ -3,7 +3,7 @@ import { Copy, Check, ChevronDown, ChevronUp } from "lucide-react";
 import { useTheme } from "../context/ThemeContext";
 import gsap from "gsap";
 
-const CodeBlock = ({ code, language, id }) => {
+const CodeBlock = ({ code = "", language = "", id }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const { copiedCode, setCopiedCode } = useTheme();
   const codeRef = useRef(null);
@@ -11,35 +11,38 @@ const CodeBlock = ({ code, language, id }) => {
 
   const copyToClipboard = async (text, id) => {
     try {
-      await navigator.clipboard.writeText(text);
+      if (!navigator?.clipboard) throw new Error("Clipboard API not supported");
+      await navigator.clipboard.writeText(text ?? "");
       setCopiedCode(id);
       setTimeout(() => setCopiedCode(null), 2000);
     } catch (err) {
-      alert("Failed to copy: " + err.message);
+      alert("Failed to copy: " + (err?.message || err));
     }
   };
 
   const COLLAPSED_HEIGHT = 200; // Height in pixels when collapsed
-  const shouldShowToggle = code.split("\n").length > 8; // Show toggle if more than 8 lines
+
+  // safe check: treat undefined/null as empty string
+  const safeCode = typeof code === "string" ? code : String(code ?? "");
+  const shouldShowToggle = safeCode.split("\n").length > 8;
 
   useEffect(() => {
     if (!codeRef.current || !containerRef.current) return;
 
     const fullHeight = codeRef.current.scrollHeight;
-
     gsap.to(containerRef.current, {
       height: isExpanded ? fullHeight : Math.min(COLLAPSED_HEIGHT, fullHeight),
       duration: 0.5,
       ease: "power2.inOut",
     });
-  }, [isExpanded]);
+  }, [isExpanded, safeCode]);
 
   return (
     <div className="relative">
       <div className="absolute top-3 right-3 flex gap-2 items-center z-10">
         <span className="text-xs text-gray-400 uppercase">{language}</span>
         <button
-          onClick={() => copyToClipboard(code, id)}
+          onClick={() => copyToClipboard(safeCode, id)}
           className="p-2 rounded-md bg-gray-700 hover:bg-gray-600 transition"
           title="Copy code"
         >
@@ -60,7 +63,7 @@ const CodeBlock = ({ code, language, id }) => {
           ref={codeRef}
           className="bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm"
         >
-          <code>{code}</code>
+          <code>{safeCode}</code>
         </pre>
 
         {shouldShowToggle && !isExpanded && (
