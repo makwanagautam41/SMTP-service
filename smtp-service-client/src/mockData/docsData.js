@@ -209,11 +209,11 @@ $emailId = $response['id'] ?? $response['_id'] ?? null;
 echo \"Email queued: \" . $emailId . PHP_EOL;
 
 // 2) Simple approach: use CLI curl to stream SSE (run from shell)
-// curl -N \"https://smtp-service-server.vercel.app/api/email/events/{$emailId}?apiKey=YOUR_API_KEY_HERE\"
+// curl -N \"https://smtp-service-server.vercel.app/api/email/events/{$emailId}\"
 
 // 3) PHP streaming client (example for CLI PHP)
 if ($emailId) {
-  $sseUrl = \"https://smtp-service-server.vercel.app/api/email/events/\" . $emailId . \"?apiKey=\" . $apiKey;
+  $sseUrl = \"https://smtp-service-server.vercel.app/api/email/events/{$emailId}";
   $ch = curl_init($sseUrl);
   curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
   curl_setopt($ch, CURLOPT_WRITEFUNCTION, function($ch, $data) {
