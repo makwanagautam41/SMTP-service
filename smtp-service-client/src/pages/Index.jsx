@@ -12,9 +12,11 @@ import {
   Clock,
   Globe,
   Users,
+  Terminal,
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import TextType from "../components/TextType/TextType";
+import TerminalEmailTester from "../components/TerminalEmailTester";
 
 const Index = () => {
   const [stats, setStats] = useState({
@@ -22,6 +24,8 @@ const Index = () => {
     activeUsers: 0,
     uptime: 0,
   });
+
+  const [showTester, setShowTester] = useState(false);
 
   const {
     theme,
@@ -37,6 +41,20 @@ const Index = () => {
     cardForeground,
     border,
   } = useThemeStyles();
+
+  const themeColors = {
+    background,
+    foreground,
+    primary,
+    primaryForeground,
+    secondary,
+    secondaryForeground,
+    muted,
+    mutedForeground,
+    card,
+    cardForeground,
+    border,
+  };
 
   useEffect(() => {
     const duration = 2000;
@@ -139,11 +157,16 @@ const Index = () => {
         color: foreground.color,
       }}
     >
-      {/* Hero Section */}
+      {showTester && (
+        <TerminalEmailTester
+          onClose={() => setShowTester(false)}
+          themeColors={themeColors}
+        />
+      )}
+
       <section className="relative overflow-hidden">
         <div className="container mx-auto max-w-7xl p-2 md:py-15">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-            {/* Text content */}
             <div className="flex flex-col">
               <div
                 className="inline-flex items-center justify-center gap-2 px-4 py-2 rounded-full text-sm font-medium mb-6 self-start"
@@ -216,7 +239,6 @@ const Index = () => {
               </div>
             </div>
 
-            {/* Code block */}
             <div className="relative w-full">
               <div
                 className="rounded-lg shadow-2xl p-6 text-sm w-full"
@@ -226,11 +248,26 @@ const Index = () => {
                   border: `1px solid ${border.color}`,
                 }}
               >
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                  </div>
+
+                  <button
+                    onClick={() => setShowTester(true)}
+                    className="flex items-center gap-2 px-3 py-1.5 rounded text-xs font-semibold"
+                    style={{
+                      backgroundColor: primary.color,
+                      color: primaryForeground.color,
+                    }}
+                  >
+                    <Terminal size={12} />
+                    Test Your API
+                  </button>
                 </div>
+
                 <pre className="overflow-x-auto text-xs md:text-sm">
                   <code>{`curl -X POST \\
   https://smtp-service-server.vercel.app/api/email/send \\
@@ -250,7 +287,7 @@ const Index = () => {
                 </pre>
               </div>
 
-              <div
+              {/* <div
                 className="absolute -bottom-4 -right-0 px-4 py-2 rounded-lg shadow-lg text-sm font-medium"
                 style={{
                   backgroundColor: primary.color,
@@ -258,13 +295,13 @@ const Index = () => {
                 }}
               >
                 ✓ Email sent successfully
-              </div>
+              </div> */}
             </div>
           </div>
         </div>
       </section>
 
-      {/* Features Section */}
+      {/* Features */}
       <section className="py-16 md:py-20">
         <div className="container mx-auto max-w-7xl p-2">
           <div className="text-center mb-12 md:mb-16">
