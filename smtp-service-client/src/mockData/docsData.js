@@ -1,3 +1,14 @@
+import {
+  HelpCircle,
+  Send,
+  Zap,
+  Radio,
+  Lock,
+  Key,
+  Code,
+  AlertCircle,
+} from "lucide-react";
+
 export const examples = {
   // CURL: send email + show how to tail SSE with curl -N
   curl: `# 1) Send email
@@ -306,7 +317,7 @@ export const documentationSections = [
   {
     id: "overview",
     title: "Overview",
-    icon: "HelpCircle",
+    icon: HelpCircle,
     description:
       "SMTP-LITE is an email API service that provides delivery tracking via simple API polling or real-time SSE events. You can send emails through the API and check their status using a unique email ID.",
     content: [
@@ -320,7 +331,7 @@ export const documentationSections = [
   {
     id: "send",
     title: "Send Email API",
-    icon: "Send",
+    icon: Send,
     description: "POST https://smtp-service-server.vercel.app/api/email/send",
     content: [
       "Required headers: Content-Type (application/json) and x-api-key",
@@ -331,7 +342,7 @@ export const documentationSections = [
   {
     id: "tracking",
     title: "Email Status Tracking (Polling)",
-    icon: "Zap",
+    icon: Zap,
     description:
       "SMTP-LITE provides a simple endpoint to check email delivery status by polling at intervals (e.g., every 2 seconds).",
     content: [
@@ -346,7 +357,7 @@ export const documentationSections = [
   {
     id: "sse-events",
     title: "Real-Time Email Events (SSE)",
-    icon: "Radio",
+    icon: Radio,
     description:
       "Server-Sent Events (SSE) provide real-time email delivery status updates without polling.",
     content: [
@@ -360,7 +371,7 @@ export const documentationSections = [
   {
     id: "app-credentials",
     title: "App Credentials (SMTP Access)",
-    icon: "Lock",
+    icon: Lock,
     description:
       "To send emails securely using your own Google account, you need to set up App Credentials consisting of your App Name, Google Account Email, and Google App Password.",
     content: [
@@ -373,7 +384,7 @@ export const documentationSections = [
   {
     id: "auth",
     title: "Authentication",
-    icon: "Key",
+    icon: Key,
     description:
       "All API requests require an API key. Include it in the x-api-key header of every request.",
     content: [
@@ -386,7 +397,7 @@ export const documentationSections = [
   {
     id: "examples",
     title: "Code Examples",
-    icon: "Code",
+    icon: Code,
     description:
       "Complete code examples for various programming languages and platforms",
     subsections: [
@@ -424,7 +435,7 @@ export const documentationSections = [
   {
     id: "responses",
     title: "API Responses",
-    icon: "AlertCircle",
+    icon: AlertCircle,
     description: "Understanding API response codes and formats",
     content: [
       "Success Response (200): Email queued successfully with ID",

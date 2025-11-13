@@ -271,7 +271,7 @@ const DocumentationSearch = ({ isOpen, onClose, sections }) => {
                         color: primary.color,
                       }}
                     >
-                      {result.icon || <FileText size={16} />}
+                      {<result.icon /> || <FileText size={16} />}
                     </div>
 
                     <div className="flex-1 min-w-0">
