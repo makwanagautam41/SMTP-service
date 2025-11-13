@@ -179,7 +179,7 @@ const Navbar = () => {
                   key="hover-bg"
                   className="absolute rounded-xs border-1 pointer-events-none"
                   style={{
-                    backgroundColor: "#3b3b3b",
+                    backgroundColor: "#6f6f6fff",
                     opacity: 0.12,
                   }}
                   initial={{

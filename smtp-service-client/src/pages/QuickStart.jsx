@@ -113,7 +113,7 @@ const QuickStart = () => {
       description: "Make a POST request to send an email",
       icon: <Mail size={24} />,
       action: "View Full Docs",
-      link: "/documentation",
+      link: "/docs#overview",
       details: [
         "Include x-api-key header",
         "Provide to, subject, and html fields",
@@ -131,20 +131,19 @@ const QuickStart = () => {
     {
       number: "04",
       title: "Track Email Status",
-      description: "Poll the status endpoint to check delivery",
+      description: "Connect to event stream endpoint to check email status",
       icon: <Zap size={24} />,
       action: "Learn More",
-      link: "/documentation#tracking",
+      link: "/docs#sse-events",
       details: [
         "Use the email ID from step 3",
-        "Poll every 2-3 seconds",
+        "Connect to event route and listen the update",
         "Status: pending → sending → sent/failed",
       ],
-      code: `// Poll for status (if need then use this otherwise avoid email status checking)
+      code: `// just connect to this event stream to see live email status
 const checkStatus = async (emailId) => {
   const res = await fetch(
-    \`https://smtp-service-server.vercel.app/api/email/status/\${response._id}\`,
-    { headers: { 'x-api-key': 'YOUR_API_KEY' } }
+    \`https://smtp-service-server.vercel.app/api/email/event/\${response._id}\`
   );
   return await res.json();
 };`,
@@ -207,7 +206,7 @@ const checkStatus = async (emailId) => {
             }}
           >
             <Code size={18} className="inline mr-2" />
-            Full Documentation
+            Full docs
           </button>
         </div>
       </section>

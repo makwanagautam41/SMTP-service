@@ -146,24 +146,40 @@ const Documentations = () => {
                 {fixBarItems.map(({ id, icon, label }) => (
                   <li key={id}>
                     <button
+                      type="button"
                       onClick={(e) => scrollToSection(e, id)}
                       className="w-full cursor-pointer flex items-center gap-2 py-2 px-3 rounded text-left transition duration-200"
                       style={{
                         backgroundColor: "transparent",
                         color: foreground.color,
+                        border: "1px solid transparent", // keep 1px to avoid layout shift
+                        transition:
+                          "background-color .18s ease, color .18s ease, border-color .18s ease",
                       }}
                       onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          hover.background;
-                        e.currentTarget.style.color = hover.primary;
+                        const el = e.currentTarget;
+                        el.style.backgroundColor =
+                          hover?.background || "#0d0d0d13";
+                        el.style.color = hover?.primary || foreground.color;
+                        el.style.borderColor =
+                          hover?.border || "rgba(0,0,0,0.12)";
                       }}
                       onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor = "transparent";
-                        e.currentTarget.style.color = foreground.color;
+                        const el = e.currentTarget;
+                        el.style.backgroundColor = "transparent";
+                        el.style.color = foreground.color;
+                        el.style.borderColor = "transparent";
                       }}
                     >
-                      {icon}
-                      {label}
+                      <span
+                        className="flex items-center"
+                        style={{ display: "inline-flex", gap: 8 }}
+                      >
+                        <span className="flex-shrink-0" aria-hidden="true">
+                          {icon}
+                        </span>
+                        <span className="font-medium">{label}</span>
+                      </span>
                     </button>
                   </li>
                 ))}
