@@ -1,5 +1,4 @@
 import mongoose from "mongoose";
-import crypto from "crypto";
 
 const apiKeySchema = new mongoose.Schema(
   {
@@ -11,9 +10,15 @@ const apiKeySchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-// Generate a random API key
 apiKeySchema.statics.generateKey = function () {
-  return crypto.randomBytes(32).toString("hex");
+  const prefix = "lite";
+  const chars =
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+  let randomPart = "";
+  for (let i = 0; i < 35; i++) {
+    randomPart += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return prefix + randomPart;
 };
 
 export default mongoose.model("ApiKey", apiKeySchema);
