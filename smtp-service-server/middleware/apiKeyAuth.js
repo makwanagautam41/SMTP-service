@@ -1,6 +1,12 @@
 import ApiKey from "../models/ApiKey.js";
 
-const publicTypes = ["register", "forgot-password", "resend-verification"];
+const publicTypes = [
+  "register",
+  "forgot-password",
+  "resend-verification",
+  "app-credentials-created",
+  "app-credentials-deleted",
+];
 
 export const apiKeyAuth = async (req, res, next) => {
   try {

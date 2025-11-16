@@ -8,7 +8,13 @@ import { decrypt } from "../utils/encryption.util.js";
 import { info, error } from "../utils/logger.js";
 import { emitEmailEvent } from "../routes/emailEventsRoutes.js";
 
-const PUBLIC_TYPES = ["register", "forgot-password", "resend-verification"];
+const PUBLIC_TYPES = [
+  "register",
+  "forgot-password",
+  "resend-verification",
+  "app-credentials-created",
+  "app-credentials-deleted",
+];
 const transporterCache = new Map();
 
 function createWorker(env) {

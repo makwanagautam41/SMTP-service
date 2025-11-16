@@ -7,6 +7,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import axios from "axios";
 import { encrypt, decrypt } from "../utils/encryption.util.js";
+import { sendEmail } from "../utils/email.util.js";
 
 // Helper: Send token in cookie
 const sendTokenResponse = (user, res) => {
@@ -67,22 +68,9 @@ export const registerUser = async (req, res) => {
     });
     await user.save();
 
-    const verifyUrl = `${
+    const verifyUrl = `${(
       process.env.CLIENT_URL || "http://localhost:5173"
-    }/verify/${rawToken}`;
-
-    const API_BASE = (
-      process.env.SMTP_LITE_BASE_URL ||
-      process.env.SMTP_LITE_API_URL ||
-      "https://smtp-service-server.vercel.app"
-    ).replace(/\/+$/, "");
-    const SEND_URL = /\/api\/email\/send$/.test(API_BASE)
-      ? API_BASE
-      : `${API_BASE}/api/email/send`;
-    const EVENTS_URL_BASE = (
-      process.env.SMTP_LITE_EVENTS_URL || `${API_BASE}/api/email/events`
-    ).replace(/\/+$/, "");
-    const API_KEY = process.env.SMTP_LITE_API_KEY || "";
+    ).replace(/\/+$/, "")}/verify/${rawToken}`;
 
     const html = `
       <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#f6f7fb;padding:24px;color:#111;">
@@ -105,85 +93,42 @@ export const registerUser = async (req, res) => {
       </div>
     `;
 
-    const sendResp = await axios.post(
-      SEND_URL,
+    const sendResp = await sendEmail(
       {
-        type,
-        from: process.env.SMTP_RELAY_USER,
         to: email,
         subject: "Verify your email",
         html,
+        type,
+        from: process.env.SMTP_RELAY_USER || undefined,
       },
-      {
-        headers: {
-          "Content-Type": "application/json",
-          ...(API_KEY ? { "x-api-key": API_KEY } : {}),
-        },
-      }
+      { waitForStatus: true }
     );
 
-    const emailId = sendResp?.data?.id;
-    if (!emailId)
-      return res
-        .status(201)
-        .json({ message: "User registered. Verification email queued." });
+    const emailId = sendResp?.emailId || null;
+    const status = sendResp?.status || "queued";
 
-    const controller = new AbortController();
-    const timeoutMs = Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000);
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-    const sse = await fetch(`${EVENTS_URL_BASE}/${emailId}`, {
-      headers: { ...(API_KEY ? { "x-api-key": API_KEY } : {}) },
-      signal: controller.signal,
-    });
-
-    if (!sse.ok || !sse.body) {
-      clearTimeout(timer);
+    if (!emailId) {
       return res
         .status(201)
         .json({ message: "User registered. Verification email queued." });
     }
 
-    const reader = sse.body.getReader();
-    const decoder = new TextDecoder("utf-8");
-    let buffer = "";
-    let finalStatus = "queued";
-
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const parts = buffer.split("\n\n");
-      buffer = parts.pop();
-      for (const chunk of parts) {
-        const line = chunk.split("\n").find((l) => l.startsWith("data:"));
-        if (!line) continue;
-        const json = line.slice(5).trim();
-        try {
-          const evt = JSON.parse(json);
-          if (evt?.status) {
-            finalStatus = evt.status;
-            if (finalStatus === "sent" || finalStatus === "failed") {
-              try {
-                await reader.cancel();
-              } catch {}
-              clearTimeout(timer);
-              return res.status(201).json({
-                message:
-                  finalStatus === "sent"
-                    ? "User registered successfully. Verification email sent."
-                    : "User registered. Verification email failed to send.",
-                emailId,
-              });
-            }
-          }
-        } catch {}
-      }
+    if (status === "sent") {
+      return res.status(201).json({
+        message: "User registered successfully. Verification email sent.",
+        emailId,
+      });
     }
 
-    clearTimeout(timer);
+    if (status === "failed") {
+      return res.status(201).json({
+        message: "User registered. Verification email failed to send.",
+        emailId,
+      });
+    }
+
     return res.status(201).json({
-      message: `User registered. Verification email status: ${finalStatus}.`,
+      message: `User registered. Verification email status: ${status}.`,
       emailId,
     });
   } catch (err) {
@@ -243,12 +188,12 @@ export const loginUser = async (req, res) => {
         .status(403)
         .json({ message: "Please verify your email first" });
 
-    sendTokenResponse(user, res);
+    return sendTokenResponse(user, res);
 
-    res.json({
-      message: "Login successful",
-      user: { id: user._id, name: user.name, email: user.email },
-    });
+    // res.json({
+    //   message: "Login successful",
+    //   user: { id: user._id, name: user.name, email: user.email },
+    // });
   } catch (err) {
     console.error("Login Error:", err);
     res.status(500).json({ message: "Server error: " + err.message });
@@ -439,6 +384,43 @@ export const createAppCredentials = async (req, res) => {
 
     await appCredentials.save();
 
+    const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#f6f7fb;padding:24px;color:#111;">
+        <div style="max-width:640px;margin:auto;background:#ffffff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);overflow:hidden">
+          <div style="background:#0f172a;color:#ffffff;padding:16px 20px;font-weight:700">Your App Credentials</div>
+          <div style="padding:22px 20px;line-height:1.6">
+            <h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Hello,</h2>
+            <p>Your app credentials have been created for <strong>${appName}</strong>.</p>
+            <p><strong>Email:</strong> ${appUserEmail}</p>
+            <p>You can use these credentials to generate API keys and access the API. Visit <a href="${process.env.CLIENT_URL}/apikeys">${process.env.CLIENT_URL}/apikeys</a> to manage your keys.</p>
+            <p style="margin-top:20px;color:#475569;font-size:14px">If you did not request this, contact support immediately.</p>
+          </div>
+          <div style="background:#f8fafc;color:#64748b;padding:12px 20px;font-size:12px;text-align:center">
+            This message was sent automatically. Please do not reply.
+          </div>
+        </div>
+      </div>
+    `;
+
+    let emailResult = { emailId: null, status: "queued" };
+    try {
+      emailResult = await sendEmail(
+        {
+          to: appUserEmail,
+          subject: `App credentials created for ${appName}`,
+          html,
+          type: "app-credentials-created",
+          from: process.env.SMTP_RELAY_USER || undefined,
+        },
+        {
+          waitForStatus: true,
+          timeoutMs: Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000),
+        }
+      );
+    } catch (emailErr) {
+      console.error("App credential creation email error:", emailErr);
+    }
+
     return res.status(201).json({
       message: "App credentials created successfully",
       data: {
@@ -447,6 +429,7 @@ export const createAppCredentials = async (req, res) => {
         appUserEmail: appCredentials.appUserEmail,
         createdAt: appCredentials.createdAt,
       },
+      email: emailResult,
     });
   } catch (error) {
     console.error("Create App Credentials Error:", error);
@@ -496,15 +479,48 @@ export const deleteAppCredentials = async (req, res) => {
       });
     }
 
-    const deletedApiKeys = await ApiKey.deleteMany({ user: req.user._id });
+    await ApiKey.deleteMany({ user: req.user._id });
 
-    console.log(
-      `Deleted ${deletedApiKeys.deletedCount} API keys for user ${req.user._id}`
-    );
+    const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#fff6f6;padding:24px;color:#111;">
+        <div style="max-width:640px;margin:auto;background:#ffffff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);overflow:hidden">
+          <div style="background:#7f1d1d;color:#ffffff;padding:16px 20px;font-weight:700">App Credentials Deleted</div>
+          <div style="padding:22px 20px;line-height:1.6">
+            <h2 style="margin:0 0 8px;font-size:20px;color:#7f1d1d;">Hello,</h2>
+            <p>Your app credentials for <strong>${appCredentialDetails.appName}</strong> have been deleted.</p>
+            <p>All API keys associated with this account were removed.</p>
+            <p style="margin-top:20px;color:#475569;font-size:14px">If you did not request this deletion, contact support immediately.</p>
+          </div>
+          <div style="background:#fff7ed;color:#92400e;padding:12px 20px;font-size:12px;text-align:center">
+            This message was sent automatically. Please do not reply.
+          </div>
+        </div>
+      </div>
+    `;
+
+    let emailResult = { emailId: null, status: "queued" };
+    try {
+      emailResult = await sendEmail(
+        {
+          to: appCredentialDetails.appUserEmail,
+          subject: `App credentials deleted for ${appCredentialDetails.appName}`,
+          html,
+          type: "app-credentials-deleted",
+          from: process.env.SMTP_RELAY_USER || undefined,
+        },
+        {
+          waitForStatus: true,
+          timeoutMs: Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000),
+        }
+      );
+    } catch (emailErr) {
+      console.error("App credentials deletion email error:", emailErr);
+    }
 
     return res.status(200).json({
       message:
         "App Credentials and all associated API keys deleted successfully.",
+      email: emailResult,
     });
   } catch (error) {
     console.error("Delete App Credentials Error:", error);
