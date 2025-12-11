@@ -6,7 +6,9 @@
   "type": "module",
   "scripts": {
     "start": "node server.js",
-    "server": "nodemon server.js"
+    "server": "nodemon server.js",
+    "build":"tsc",
+    "docker:publish":"docker build -t makwanagautam/smtp-service-server:v1 --platform linux/amd64 . && docker push makwanagautam/smtp-service-server:v1"
   },
   "keywords": [],
   "author": "",
