@@ -10,6 +10,8 @@ COPY . .
 
 RUN npm install -g pm2
 
+COPY ecosystem.config.js .
+
 EXPOSE 5001
 
-CMD ["pm2-runtime", "server.js"]
+CMD ["pm2-runtime", "start", "ecosystem.config.js"]
