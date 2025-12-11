@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "smtp-service-server",
-      script: "./dist/server.js",
+      script: "./server.js",
       instances: "max",
       exec_mode: "cluster",
       env: {
