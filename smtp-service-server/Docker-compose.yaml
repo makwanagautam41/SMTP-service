@@ -1,36 +1,15 @@
 services:
-  mongoserver:
-    image: mongo
-    container_name: mongodb-server
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=root
-      - MONGO_INITDB_ROOT_PASSWORD=root
-    volumes:
-      - ~/mongo/data:/data/db
-    networks:
-      - smtp-service-server
-
-  redisserver:
-    image: redis:7
-    container_name: redis-server
-    ports:
-      - "6379:6379"
-    networks:
-      - smtp-service-server
-
-  backend1:
+  smtp-service-server:
     image: makwanagautam/smtp-service-server:v1
-    container_name: backend1
+    container_name: smtp-service-server
     environment:
-      - PORT=5513
+      - PORT=5001
     expose:
-      - "5513"
+      - "5001:5001"
     networks:
       - smtp-service-server
-    depends_on:
-      - mongoserver
-      - redisserver
     env_file: .env
+    restart: unless-stopped
 
 networks:
   smtp-service-server:
