@@ -4,7 +4,7 @@ import { info } from "../utils/logger.js";
 import { apiKeyAuth } from "../middleware/apiKeyAuth.js";
 import { getWorker } from "../workers/worker.js";
 
-import EmailTemplate from "../../smtp-user-server/models/EmailTemplate.js";
+import EmailTemplate from "../models/EmailTemplate.js";
 import { renderDbTemplate } from "../utils/renderDbTemplate.js";
 
 const router = express.Router();
@@ -22,7 +22,7 @@ function wakeWorker() {
 
 router.post("/send", apiKeyAuth, async (req, res) => {
   try {
-    const { to, subject, text, html, meta, type, templateId, variables } =
+    let { to, subject, text, html, meta, type, templateId, variables } =
       req.body;
 
     const from = req.fromEmail;
@@ -43,7 +43,6 @@ router.post("/send", apiKeyAuth, async (req, res) => {
 
       const rendered = renderDbTemplate(tpl, variables);
       subject = rendered.subject;
-      text = rendered.text;
       html = rendered.html;
     }
 

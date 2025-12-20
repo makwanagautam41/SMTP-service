@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server.js",
     "server": "nodemon server.js",
-    "docker:publish":"docker build -t makwanagautam/smtp-service-server:v1 --platform linux/amd64 . && docker push makwanagautam/smtp-service-server:v1"
+    "docker:publish": "docker build -t makwanagautam/smtp-service-server:v1 --platform linux/amd64 . && docker push makwanagautam/smtp-service-server:v1"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +23,8 @@
     "jsonwebtoken": "^9.0.2",
     "mailparser": "^3.7.5",
     "mongoose": "^8.19.2",
-    "nodemailer": "^7.0.10"
+    "node-fetch": "^3.3.2",
+    "nodemailer": "^7.0.10",
+    "uuid": "^13.0.0"
   }
 }

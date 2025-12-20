@@ -672,3 +672,43 @@ export const getEmailTemplates = async (req, res) => {
     res.status(500).json({ message: "Server error: " + err.message });
   }
 };
+
+export const createEmailTemplate = async (req, res) => {
+  try {
+    const { subject, html, active } = req.body;
+
+    if (!subject || !html) {
+      return res.status(400).json({
+        error: "type, subject and html are required",
+      });
+    }
+
+    const template = await EmailTemplate.create({
+      subject,
+      html,
+      active,
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: "Email template created successfully",
+      template: {
+        templateId: template.templateId,
+        active: template.active,
+        version: template.version,
+        createdAt: template.createdAt,
+      },
+    });
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(409).json({
+        error: "Template already exists",
+      });
+    }
+
+    return res.status(500).json({
+      error: "Failed to create template",
+      details: err.message,
+    });
+  }
+};

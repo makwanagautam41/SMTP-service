@@ -15,6 +15,7 @@ import {
   viewDecryptedAppCredential,
   getUserDashboard,
   getEmailTemplates,
+  createEmailTemplate,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -46,5 +47,6 @@ router.get("/dashboard", getUserDashboard);
 
 // email template routes
 router.get("/email-templates", getEmailTemplates);
+router.post("/create-email-template", protect, createEmailTemplate);
 
 export default router;

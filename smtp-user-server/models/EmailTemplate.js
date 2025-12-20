@@ -9,11 +9,6 @@ const EmailTemplateSchema = new mongoose.Schema(
       index: true,
       default: uuidv4,
     },
-    type: {
-      type: String,
-      required: true,
-      index: true,
-    },
     subject: {
       type: String,
       required: true,
@@ -21,9 +16,6 @@ const EmailTemplateSchema = new mongoose.Schema(
     html: {
       type: String,
       required: true,
-    },
-    text: {
-      type: String,
     },
     active: {
       type: Boolean,
