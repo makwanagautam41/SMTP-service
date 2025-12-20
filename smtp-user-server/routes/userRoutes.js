@@ -14,6 +14,7 @@ import {
   deleteAppCredentials,
   viewDecryptedAppCredential,
   getUserDashboard,
+  getEmailTemplates,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -42,5 +43,8 @@ router.get("/app/credentials/:id/decrypted", viewDecryptedAppCredential);
 router.delete("/app/:id", deleteAppCredentials);
 
 router.get("/dashboard", getUserDashboard);
+
+// email template routes
+router.get("/email-templates", getEmailTemplates);
 
 export default router;

@@ -8,6 +8,7 @@ import jwt from "jsonwebtoken";
 import axios from "axios";
 import { encrypt, decrypt } from "../utils/encryption.util.js";
 import { sendEmail } from "../utils/email.util.js";
+import EmailTemplate from "../models/EmailTemplate.js";
 
 // Helper: Send token in cookie
 const sendTokenResponse = (user, res) => {
@@ -654,6 +655,20 @@ export const getUserDashboard = async (req, res) => {
     });
   } catch (err) {
     console.error("Dashboard Error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
+export const getEmailTemplates = async (req, res) => {
+  try {
+    const templates = await EmailTemplate.find({});
+    if (templates.length > 0) {
+      return res.status(200).json({ templates });
+    } else {
+      return res.status(404).json({ message: "No templates found" });
+    }
+  } catch (error) {
+    console.error("Template Error:", err);
     res.status(500).json({ message: "Server error: " + err.message });
   }
 };
