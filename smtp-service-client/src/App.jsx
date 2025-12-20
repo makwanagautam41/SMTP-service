@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import { useThemeStyles } from "./utils/useThemeStyles";
 import AppCredentials from "./pages/AppCredentials";
 import QuickStart from "./pages/QuickStart";
+import EmailTemplateBuilder from "./pages/EmailTemplateBuilder";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -42,6 +43,7 @@ const App = () => {
             <Route path="/apikeys" element={<ApiKeys />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/app-credentials" element={<AppCredentials />} />
+            <Route path="/create-template" element={<EmailTemplateBuilder />} />
           </Route>
 
           <Route path="*" element={<NotFound />} />
