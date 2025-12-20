@@ -16,6 +16,7 @@ import { useThemeStyles } from "./utils/useThemeStyles";
 import AppCredentials from "./pages/AppCredentials";
 import QuickStart from "./pages/QuickStart";
 import EmailTemplateBuilder from "./pages/EmailTemplateBuilder";
+import EmailTemplate from "./pages/EmailTemplate";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -37,6 +38,7 @@ const App = () => {
           <Route path="/verify/:token" element={<VerifyAccount />} />
           <Route path="/docs" element={<Documentations />} />
           <Route path="/quick-start" element={<QuickStart />} />
+          <Route path="/email-template" element={<EmailTemplate />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
