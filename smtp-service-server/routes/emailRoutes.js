@@ -4,6 +4,9 @@ import { info } from "../utils/logger.js";
 import { apiKeyAuth } from "../middleware/apiKeyAuth.js";
 import { getWorker } from "../workers/worker.js";
 
+import EmailTemplate from "../../smtp-user-server/models/EmailTemplate.js";
+import { renderDbTemplate } from "../utils/renderDbTemplate.js";
+
 const router = express.Router();
 
 function wakeWorker() {
@@ -19,11 +22,30 @@ function wakeWorker() {
 
 router.post("/send", apiKeyAuth, async (req, res) => {
   try {
-    const { to, subject, text, html, meta, type } = req.body;
+    const { to, subject, text, html, meta, type, templateId, variables } =
+      req.body;
+
     const from = req.fromEmail;
     const user = req.fromUserId;
+
     if (!from || !to)
       return res.status(400).json({ error: "from and to required" });
+
+    if (templateId) {
+      const tpl = await EmailTemplate.findOne({
+        templateId,
+        active: true,
+      }).lean();
+
+      if (!tpl) {
+        return res.status(400).json({ error: "Templated not found" });
+      }
+
+      const rendered = renderDbTemplate(tpl, variables);
+      subject = rendered.subject;
+      text = rendered.text;
+      html = rendered.html;
+    }
 
     const email = await Email.create({
       from,
