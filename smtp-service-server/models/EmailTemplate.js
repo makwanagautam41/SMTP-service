@@ -1,11 +1,18 @@
 import mongoose from "mongoose";
+import { v4 as uuidv4 } from "uuid";
 
 const EmailTemplateSchema = new mongoose.Schema(
   {
     templateId: {
       type: String,
       unique: true,
+      index: true,
+      default: uuidv4,
+    },
+    type: {
+      type: String,
       required: true,
+      index: true,
     },
     subject: {
       type: String,
@@ -20,7 +27,11 @@ const EmailTemplateSchema = new mongoose.Schema(
     },
     active: {
       type: Boolean,
-      default: false,
+      default: true,
+    },
+    version: {
+      type: Number,
+      default: 1,
     },
   },
   { timestamps: true }
