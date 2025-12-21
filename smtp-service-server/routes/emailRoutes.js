@@ -25,6 +25,8 @@ router.post("/send", apiKeyAuth, async (req, res) => {
     let { to, subject, text, html, meta, type, templateId, variables } =
       req.body;
 
+    console.log("Email send request body:", req.body);
+
     const from = req.fromEmail;
     const user = req.fromUserId;
 
@@ -34,11 +36,11 @@ router.post("/send", apiKeyAuth, async (req, res) => {
     if (templateId) {
       const tpl = await EmailTemplate.findOne({
         templateId,
-        active: true,
+        status: "active",
       }).lean();
 
       if (!tpl) {
-        return res.status(400).json({ error: "Templated not found" });
+        return res.status(400).json({ error: "Template not found" });
       }
 
       const rendered = renderDbTemplate(tpl, variables);
