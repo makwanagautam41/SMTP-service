@@ -1,37 +1,51 @@
-import mongoose, { modelNames, mongo } from "mongoose";
+import mongoose from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const EmailTemplateSchema = new mongoose.Schema(
   {
-    userId: {
+    owner: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
     },
+
     templateId: {
       type: String,
+      default: uuidv4,
       unique: true,
       index: true,
-      default: uuidv4,
+      immutable: true,
     },
+
     subject: {
       type: String,
       required: true,
+      trim: true,
     },
+
     html: {
       type: String,
       required: true,
     },
-    active: {
-      type: Boolean,
-      default: true,
+
+    visibility: {
+      type: String,
+      enum: ["public", "private"],
+      default: "private",
+      index: true,
     },
-    isPublic: {
-      type: Boolean,
-      default: false,
+
+    status: {
+      type: String,
+      enum: ["active", "inactive"],
+      default: "active",
+      index: true,
     },
   },
-  { timestamps: true }
+  {
+    timestamps: true,
+  }
 );
 
 export default mongoose.model("EmailTemplate", EmailTemplateSchema);

@@ -1,4 +1,5 @@
 import User from "../models/User.js";
+import mongoose from "mongoose";
 import ApiKey from "../models/ApiKey.js";
 import AppCredential from "../models/AppCredential.js";
 import Email from "../models/Email.js";
@@ -661,56 +662,85 @@ export const getUserDashboard = async (req, res) => {
 
 export const getEmailTemplates = async (req, res) => {
   try {
-    const templates = await EmailTemplate.find({});
-    if (templates.length > 0) {
-      return res.status(200).json({ templates });
-    } else {
-      return res.status(404).json({ message: "No templates found" });
-    }
-  } catch (error) {
-    console.error("Template Error:", err);
-    res.status(500).json({ message: "Server error: " + err.message });
+    const userId = new mongoose.Types.ObjectId(req.user._id);
+
+    const page = Math.max(parseInt(req.query.page) || 1, 1);
+    const limit = Math.min(parseInt(req.query.limit) || 10, 50);
+    const skip = (page - 1) * limit;
+
+    const matchQuery = {
+      $or: [
+        { owner: userId },
+        { visibility: "public", status: "active", owner: { $ne: userId } },
+      ],
+    };
+
+    const [templates, total] = await Promise.all([
+      EmailTemplate.find(matchQuery)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
+
+      EmailTemplate.countDocuments(matchQuery),
+    ]);
+
+    return res.status(200).json({
+      templates,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
+        hasPrevPage: page > 1,
+      },
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Server error",
+      error: err.message,
+    });
   }
 };
 
 export const createEmailTemplate = async (req, res) => {
   try {
-    const { subject, html, active, isPublic } = req.body;
+    const {
+      subject,
+      html,
+      visibility = "private",
+      status = "active",
+    } = req.body;
 
     if (!subject || !html) {
       return res.status(400).json({
-        error: "type, subject and html are required",
+        message: "Subject and HTML are required",
       });
     }
 
     const template = await EmailTemplate.create({
+      owner: req.user._id,
       subject,
       html,
-      active,
-      isPublic,
-      userId: req.user._id,
+      visibility,
+      status,
     });
 
     return res.status(201).json({
       success: true,
       message: "Email template created successfully",
-      template: {
-        templateId: template.templateId,
-        active: template.active,
-        createdAt: template.createdAt,
-        publicType: template.isPublic,
-      },
+      template,
     });
   } catch (err) {
     if (err.code === 11000) {
       return res.status(409).json({
-        error: "Template already exists",
+        message: "Template already exists",
       });
     }
 
     return res.status(500).json({
-      error: "Failed to create template",
-      details: err.message,
+      message: "Failed to create email template",
+      error: err.message,
     });
   }
 };
