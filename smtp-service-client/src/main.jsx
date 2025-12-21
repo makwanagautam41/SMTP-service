@@ -7,6 +7,7 @@ import { AuthProvider } from "./context/AuthContext";
 import { ApiKeyProvider } from "./context/ApiKeyContext";
 import { ThemeProvider } from "./context/ThemeContext";
 import { AppCredentialsProvider } from "./context/AppCredentialsContext";
+import { EmailTemplateProvider } from "./context/EmailTemplateContext";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <BrowserRouter>
@@ -14,7 +15,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
       <ApiKeyProvider>
         <ThemeProvider>
           <AppCredentialsProvider>
-            <App />
+            <EmailTemplateProvider>
+              <App />
+            </EmailTemplateProvider>
           </AppCredentialsProvider>
         </ThemeProvider>
       </ApiKeyProvider>

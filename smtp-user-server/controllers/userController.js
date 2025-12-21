@@ -668,30 +668,70 @@ export const getEmailTemplates = async (req, res) => {
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const skip = (page - 1) * limit;
 
-    const matchQuery = {
-      $or: [
-        { owner: userId },
-        { visibility: "public", status: "active", owner: { $ne: userId } },
-      ],
+    const { type, search } = req.query;
+
+    const userQuery = {
+      owner: userId,
     };
 
-    const [templates, total] = await Promise.all([
-      EmailTemplate.find(matchQuery)
+    const publicQuery = {
+      visibility: "public",
+      status: "active",
+      owner: { $ne: userId },
+    };
+
+    if (type) {
+      userQuery.type = type;
+      publicQuery.type = type;
+    }
+
+    if (search) {
+      const regex = { $regex: search, $options: "i" };
+      userQuery.subject = regex;
+      publicQuery.subject = regex;
+    }
+
+    const [userTemplates, publicTemplates, publicTotal] = await Promise.all([
+      EmailTemplate.find(userQuery).sort({ createdAt: -1 }),
+
+      EmailTemplate.find(publicQuery)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit),
 
-      EmailTemplate.countDocuments(matchQuery),
+      EmailTemplate.countDocuments(publicQuery),
     ]);
 
+    const combinedTemplates = [...userTemplates, ...publicTemplates];
+
+    if (!combinedTemplates.length) {
+      return res.status(200).json({
+        templates: [],
+        message: "No templates found",
+        pagination: {
+          page,
+          limit,
+          total: 0,
+          totalPages: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      });
+    }
+
     return res.status(200).json({
-      templates,
+      templates: combinedTemplates,
+      message: "Templates fetched successfully",
+      meta: {
+        userTemplatesCount: userTemplates.length,
+        publicTemplatesCount: publicTemplates.length,
+      },
       pagination: {
         page,
         limit,
-        total,
-        totalPages: Math.ceil(total / limit),
-        hasNextPage: page * limit < total,
+        total: publicTotal,
+        totalPages: Math.ceil(publicTotal / limit),
+        hasNextPage: page * limit < publicTotal,
         hasPrevPage: page > 1,
       },
     });
@@ -708,6 +748,7 @@ export const createEmailTemplate = async (req, res) => {
     const {
       subject,
       html,
+      type,
       visibility = "private",
       status = "active",
     } = req.body;
@@ -724,6 +765,7 @@ export const createEmailTemplate = async (req, res) => {
       html,
       visibility,
       status,
+      type,
     });
 
     return res.status(201).json({

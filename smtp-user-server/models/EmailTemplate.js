@@ -28,7 +28,11 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-
+    type: {
+      type: String,
+      default: "custom",
+      index: true,
+    },
     visibility: {
       type: String,
       enum: ["public", "private"],
