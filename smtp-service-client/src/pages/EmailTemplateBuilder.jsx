@@ -55,6 +55,7 @@ const EmailTemplateBuilder = () => {
       subject,
       htmlTemplate,
       isActive,
+      isPublic,
       createdAt: new Date().toISOString(),
     };
     console.log("Template Data:", templateData);
