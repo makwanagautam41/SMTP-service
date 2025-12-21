@@ -21,6 +21,10 @@ const EmailTemplateSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isPublic: {
+      type: Boolean,
+      default: false,
+    },
     version: {
       type: Number,
       default: 1,
