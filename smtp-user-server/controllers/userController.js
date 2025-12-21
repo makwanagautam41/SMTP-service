@@ -675,7 +675,7 @@ export const getEmailTemplates = async (req, res) => {
 
 export const createEmailTemplate = async (req, res) => {
   try {
-    const { subject, html, active } = req.body;
+    const { subject, html, active, isPublic } = req.body;
 
     if (!subject || !html) {
       return res.status(400).json({
@@ -687,6 +687,8 @@ export const createEmailTemplate = async (req, res) => {
       subject,
       html,
       active,
+      isPublic,
+      userId: req.user._id,
     });
 
     return res.status(201).json({
@@ -695,8 +697,8 @@ export const createEmailTemplate = async (req, res) => {
       template: {
         templateId: template.templateId,
         active: template.active,
-        version: template.version,
         createdAt: template.createdAt,
+        publicType: template.isPublic,
       },
     });
   } catch (err) {

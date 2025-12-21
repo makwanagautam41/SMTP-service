@@ -1,8 +1,13 @@
-import mongoose from "mongoose";
+import mongoose, { modelNames, mongo } from "mongoose";
 import { v4 as uuidv4 } from "uuid";
 
 const EmailTemplateSchema = new mongoose.Schema(
   {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
     templateId: {
       type: String,
       unique: true,
@@ -24,10 +29,6 @@ const EmailTemplateSchema = new mongoose.Schema(
     isPublic: {
       type: Boolean,
       default: false,
-    },
-    version: {
-      type: Number,
-      default: 1,
     },
   },
   { timestamps: true }
