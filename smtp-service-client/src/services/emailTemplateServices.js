@@ -38,3 +38,9 @@ export const fetchEmailTemplatesService = async ({
     API.get(`/users/email-templates?${params.toString()}`)
   );
 };
+
+export const createEmailTemplateService = async (templateData) => {
+  return await handleRequest(
+    API.post("/users/create-email-template", templateData)
+  );
+};

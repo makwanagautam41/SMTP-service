@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { fetchEmailTemplatesService } from "../services/emailTemplateServices";
+import {
+  fetchEmailTemplatesService,
+  createEmailTemplateService,
+} from "../services/emailTemplateServices";
 
 const EmailTemplateContext = createContext();
 
@@ -13,7 +16,6 @@ export const EmailTemplateProvider = ({ children }) => {
     setLoading(true);
 
     const res = await fetchEmailTemplatesService(options);
-    console.log("Fetch Email Templates Response:", res);
 
     if (res.success) {
       setTemplates(res.data.templates || []);
@@ -32,6 +34,10 @@ export const EmailTemplateProvider = ({ children }) => {
     fetchTemplates({ page: 1, limit: 10 });
   }, []);
 
+  const createEmailTemplate = async (templateData) => {
+    await createEmailTemplateService(templateData);
+  };
+
   return (
     <EmailTemplateContext.Provider
       value={{
@@ -40,6 +46,7 @@ export const EmailTemplateProvider = ({ children }) => {
         loading,
         message,
         fetchTemplates,
+        createEmailTemplate,
       }}
     >
       {children}

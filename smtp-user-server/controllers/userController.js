@@ -752,6 +752,8 @@ export const createEmailTemplate = async (req, res) => {
       visibility = "private",
       status = "active",
     } = req.body;
+    console.log(req.body);
+    console.log("user id:",req.user._id)
 
     if (!subject || !html) {
       return res.status(400).json({
@@ -767,6 +769,7 @@ export const createEmailTemplate = async (req, res) => {
       status,
       type,
     });
+    console.log("created:", template);
 
     return res.status(201).json({
       success: true,

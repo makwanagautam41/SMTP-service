@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
 import { RotateCcw, CloudCheck } from "lucide-react";
+import { useEmailTemplate } from "../context/EmailTemplateContext";
 
 const EmailTemplateBuilder = () => {
   const [subject, setSubject] = useState("");
@@ -9,6 +10,7 @@ const EmailTemplateBuilder = () => {
   const [isActive, setIsActive] = useState(false);
   const [showVariablesHelp, setShowVariablesHelp] = useState(false);
   const [isPublic, setIsPublic] = useState(false);
+  const { createEmailTemplate } = useEmailTemplate();
 
   const {
     card,
@@ -50,15 +52,17 @@ const EmailTemplateBuilder = () => {
     setIsPublic(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     const templateData = {
       subject,
-      htmlTemplate,
-      isActive,
-      isPublic,
+      html: htmlTemplate,
+      status: isActive ? "active" : "inactive",
+      visibility: isPublic ? "public" : "private",
       createdAt: new Date().toISOString(),
+      type: "custom",
     };
-    console.log("Template Data:", templateData);
+    const result = await createEmailTemplate(templateData);
+    console.log("Template save result:", result);
   };
 
   return (
