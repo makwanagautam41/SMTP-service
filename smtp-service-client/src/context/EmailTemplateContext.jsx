@@ -35,7 +35,8 @@ export const EmailTemplateProvider = ({ children }) => {
   }, []);
 
   const createEmailTemplate = async (templateData) => {
-    await createEmailTemplateService(templateData);
+    const res = await createEmailTemplateService(templateData);
+    return res;
   };
 
   return (

@@ -1,16 +1,73 @@
+// EmailTemplateBuilder.jsx
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
-import { RotateCcw, CloudCheck } from "lucide-react";
+import { RotateCcw, CloudCheck, Loader2 } from "lucide-react";
 import { useEmailTemplate } from "../context/EmailTemplateContext";
 
+const TEMPLATE_STATUS = {
+  ACTIVE: "active",
+  INACTIVE: "inactive",
+};
+
+const TEMPLATE_VISIBILITY = {
+  PUBLIC: "public",
+  PRIVATE: "private",
+};
+
+const TEMPLATE_TYPE = {
+  CUSTOM: "custom",
+};
+
+const DYNAMIC_VARIABLES = [
+  { key: "{{name}}", value: "John Doe", description: "User's full name" },
+  {
+    key: "{{email}}",
+    value: "john@example.com",
+    description: "User's email address",
+  },
+  {
+    key: "{{verifyUrl}}",
+    value: "https://example.com/verify",
+    description: "Verification link",
+  },
+  {
+    key: "{{resetUrl}}",
+    value: "https://example.com/reset",
+    description: "Password reset link",
+  },
+  { key: "{{otp}}", value: "123456", description: "One-time password" },
+  { key: "{{year}}", value: "2025", description: "Current year" },
+  {
+    key: "{{companyName}}",
+    value: "Your Company",
+    description: "Company name",
+  },
+];
+
+const DEFAULT_PLACEHOLDER = `<div style="font-family: Arial, sans-serif; padding: 20px;">
+  <h2>Hello {{name}},</h2>
+  <p>Welcome to {{companyName}}! Click below to verify your account:</p>
+  <a href="{{verifyUrl}}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Verify Account</a>
+  <p style="color: #666; margin-top: 20px;">© {{year}} {{companyName}}</p>
+</div>`;
+
 const EmailTemplateBuilder = () => {
-  const [subject, setSubject] = useState("");
-  const [htmlTemplate, setHtmlTemplate] = useState("");
-  const [isActive, setIsActive] = useState(false);
-  const [showVariablesHelp, setShowVariablesHelp] = useState(false);
-  const [isPublic, setIsPublic] = useState(false);
-  const { createEmailTemplate } = useEmailTemplate();
+  const [emailSubject, setEmailSubject] = useState("");
+  const [htmlContent, setHtmlContent] = useState("");
+  const [templateStatus, setTemplateStatus] = useState(
+    TEMPLATE_STATUS.INACTIVE
+  );
+  const [templateVisibility, setTemplateVisibility] = useState(
+    TEMPLATE_VISIBILITY.PRIVATE
+  );
+  const [showVariableGuide, setShowVariableGuide] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [saveError, setSaveError] = useState("");
+
+  const { createEmailTemplate, fetchTemplates } = useEmailTemplate();
+  const themeStyles = useThemeStyles();
 
   const {
     card,
@@ -24,63 +81,128 @@ const EmailTemplateBuilder = () => {
     background,
     muted,
     ring,
-  } = useThemeStyles();
+  } = themeStyles;
 
-  const variables = [
-    { key: "{{name}}", value: "John Doe" },
-    { key: "{{email}}", value: "john@example.com" },
-    { key: "{{verifyUrl}}", value: "https://example.com/verify" },
-    { key: "{{resetUrl}}", value: "https://example.com/reset" },
-    { key: "{{otp}}", value: "123456" },
-    { key: "{{year}}", value: "2025" },
-    { key: "{{companyName}}", value: "Your Company" },
-  ];
+  const isTemplateActive = templateStatus === TEMPLATE_STATUS.ACTIVE;
+  const isTemplatePublic = templateVisibility === TEMPLATE_VISIBILITY.PUBLIC;
 
-  const getPreviewHtml = () => {
-    let preview = htmlTemplate;
-    variables.forEach((variable) => {
+  const replaceVariablesInTemplate = (template) => {
+    let processedTemplate = template;
+    DYNAMIC_VARIABLES.forEach((variable) => {
       const regex = new RegExp(variable.key.replace(/[{}]/g, "\\$&"), "g");
-      preview = preview.replace(regex, variable.value);
+      processedTemplate = processedTemplate.replace(regex, variable.value);
     });
-    return preview;
+    return processedTemplate;
   };
 
-  const handleReset = () => {
-    setSubject("");
-    setHtmlTemplate("");
-    setIsActive(false);
-    setIsPublic(false);
+  const resetTemplate = () => {
+    setEmailSubject("");
+    setHtmlContent("");
+    setTemplateStatus(TEMPLATE_STATUS.INACTIVE);
+    setTemplateVisibility(TEMPLATE_VISIBILITY.PRIVATE);
+    setSaveSuccess(false);
+    setSaveError("");
   };
 
-  const handleSave = async () => {
-    const templateData = {
-      subject,
-      html: htmlTemplate,
-      status: isActive ? "active" : "inactive",
-      visibility: isPublic ? "public" : "private",
+  const saveTemplate = async () => {
+    if (!emailSubject.trim() || !htmlContent.trim()) {
+      setSaveError("Please provide both subject and HTML content");
+      setTimeout(() => setSaveError(""), 3000);
+      return;
+    }
+
+    setIsSaving(true);
+    setSaveSuccess(false);
+    setSaveError("");
+
+    const templatePayload = {
+      subject: emailSubject,
+      html: htmlContent,
+      status: templateStatus,
+      visibility: templateVisibility,
       createdAt: new Date().toISOString(),
-      type: "custom",
+      type: TEMPLATE_TYPE.CUSTOM,
     };
-    const result = await createEmailTemplate(templateData);
-    console.log("Template save result:", result);
+
+    try {
+      const result = await createEmailTemplate(templatePayload);
+
+      if (result?.success) {
+        setSaveSuccess(true);
+        // Refresh templates list
+        await fetchTemplates({ page: 1, limit: 10 });
+
+        setTimeout(() => {
+          setSaveSuccess(false);
+        }, 3000);
+      } else {
+        setSaveError(result?.message || "Failed to save template");
+        setTimeout(() => setSaveError(""), 3000);
+      }
+    } catch (error) {
+      setSaveError("An error occurred while saving");
+      setTimeout(() => setSaveError(""), 3000);
+    } finally {
+      setIsSaving(false);
+    }
   };
+
+  const toggleTemplateStatus = () => {
+    setTemplateStatus((prevStatus) =>
+      prevStatus === TEMPLATE_STATUS.ACTIVE
+        ? TEMPLATE_STATUS.INACTIVE
+        : TEMPLATE_STATUS.ACTIVE
+    );
+  };
+
+  const toggleTemplateVisibility = () => {
+    setTemplateVisibility((prevVisibility) =>
+      prevVisibility === TEMPLATE_VISIBILITY.PUBLIC
+        ? TEMPLATE_VISIBILITY.PRIVATE
+        : TEMPLATE_VISIBILITY.PUBLIC
+    );
+  };
+
+  const renderToggleButton = (isEnabled, onToggle) => (
+    <button
+      type="button"
+      onClick={onToggle}
+      className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+      style={{
+        backgroundColor: isEnabled ? primary.color : mutedForeground.color,
+      }}
+      aria-pressed={isEnabled}
+    >
+      <motion.span
+        layout
+        transition={{
+          type: "spring",
+          stiffness: 500,
+          damping: 30,
+        }}
+        className={`inline-block h-4 w-4 transform rounded-full ${
+          isEnabled ? "translate-x-6" : "translate-x-1"
+        }`}
+        style={{ backgroundColor: primaryForeground.color }}
+      />
+    </button>
+  );
 
   return (
     <div
       className="min-h-screen"
       style={{ backgroundColor: background.color, color: foreground.color }}
     >
-      {/* Main Content */}
       <div className="max-w-7xl mx-auto px-2 py-4">
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left Column - Form */}
+          {/* Configuration Panel */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: 0.1 }}
             className="lg:col-span-3 space-y-6"
           >
-            {/* Template Configuration */}
+            {/* Template Settings Card */}
             <div
               className="rounded-xl shadow-md p-6"
               style={{
@@ -97,7 +219,7 @@ const EmailTemplateBuilder = () => {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
-                  style={{ color: primary.color }}
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -116,20 +238,20 @@ const EmailTemplateBuilder = () => {
               </h2>
 
               <div className="space-y-5">
-                {/* Subject */}
+                {/* Email Subject Input */}
                 <div>
                   <label
-                    htmlFor="subject"
+                    htmlFor="emailSubject"
                     className="block text-sm font-medium mb-2"
                     style={{ color: foreground.color }}
                   >
                     Email Subject
                   </label>
                   <input
-                    id="subject"
+                    id="emailSubject"
                     type="text"
-                    value={subject}
-                    onChange={(e) => setSubject(e.target.value)}
+                    value={emailSubject}
+                    onChange={(e) => setEmailSubject(e.target.value)}
                     placeholder="Welcome to {{companyName}}, {{name}}!"
                     className="w-full px-4 py-2.5 rounded-lg focus:outline-none transition-all"
                     style={{
@@ -145,7 +267,8 @@ const EmailTemplateBuilder = () => {
                     }
                   />
                 </div>
-                {/* Active Toggle */}
+
+                {/* Template Status Toggle */}
                 <div
                   className="flex items-center justify-between p-4 rounded-lg"
                   style={{
@@ -155,7 +278,6 @@ const EmailTemplateBuilder = () => {
                 >
                   <div>
                     <label
-                      htmlFor="active"
                       className="block text-sm font-medium"
                       style={{ color: foreground.color }}
                     >
@@ -165,36 +287,15 @@ const EmailTemplateBuilder = () => {
                       className="text-xs mt-0.5"
                       style={{ color: mutedForeground.color }}
                     >
-                      {isActive
-                        ? "Active - ready to use"
-                        : "Inactive - not in use"}
+                      {isTemplateActive
+                        ? "Active – ready to use"
+                        : "Inactive – not in use"}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsActive(!isActive)}
-                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                    style={{
-                      backgroundColor: isActive
-                        ? primary.color
-                        : mutedForeground.color,
-                    }}
-                  >
-                    <motion.span
-                      layout
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                      className={`inline-block h-4 w-4 transform rounded-full transition ${
-                        isActive ? "translate-x-6" : "translate-x-1"
-                      }`}
-                      style={{ backgroundColor: primaryForeground.color }}
-                    />
-                  </button>
+                  {renderToggleButton(isTemplateActive, toggleTemplateStatus)}
                 </div>
-                {/* Public Or Private */}
+
+                {/* Template Visibility Toggle */}
                 <div
                   className="flex items-center justify-between p-4 rounded-lg"
                   style={{
@@ -213,40 +314,20 @@ const EmailTemplateBuilder = () => {
                       className="text-xs mt-0.5"
                       style={{ color: mutedForeground.color }}
                     >
-                      {isPublic
+                      {isTemplatePublic
                         ? "Public – available to all users"
                         : "Private – only visible to you"}
                     </p>
                   </div>
-
-                  <button
-                    type="button"
-                    onClick={() => setIsPublic(!isPublic)}
-                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
-                    style={{
-                      backgroundColor: isPublic
-                        ? primary.color
-                        : mutedForeground.color,
-                    }}
-                  >
-                    <motion.span
-                      layout
-                      transition={{
-                        type: "spring",
-                        stiffness: 500,
-                        damping: 30,
-                      }}
-                      className={`inline-block h-4 w-4 transform rounded-full ${
-                        isPublic ? "translate-x-6" : "translate-x-1"
-                      }`}
-                      style={{ backgroundColor: primaryForeground.color }}
-                    />
-                  </button>
+                  {renderToggleButton(
+                    isTemplatePublic,
+                    toggleTemplateVisibility
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* HTML Template Editor */}
+            {/* HTML Editor Card */}
             <div
               className="rounded-xl shadow-md p-6"
               style={{
@@ -264,7 +345,7 @@ const EmailTemplateBuilder = () => {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
-                    style={{ color: primary.color }}
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -276,7 +357,7 @@ const EmailTemplateBuilder = () => {
                   HTML Template
                 </h2>
                 <button
-                  onClick={() => setShowVariablesHelp(!showVariablesHelp)}
+                  onClick={() => setShowVariableGuide(!showVariableGuide)}
                   className="text-sm font-medium flex items-center gap-1 transition-colors"
                   style={{ color: primary.color }}
                   onMouseEnter={(e) =>
@@ -285,12 +366,14 @@ const EmailTemplateBuilder = () => {
                   onMouseLeave={(e) =>
                     (e.currentTarget.style.color = primary.color)
                   }
+                  aria-expanded={showVariableGuide}
                 >
                   <svg
                     className="w-4 h-4"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -303,8 +386,9 @@ const EmailTemplateBuilder = () => {
                 </button>
               </div>
 
+              {/* Variable Guide */}
               <AnimatePresence>
-                {showVariablesHelp && (
+                {showVariableGuide && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: "auto" }}
@@ -338,52 +422,29 @@ const EmailTemplateBuilder = () => {
                           border: `1px solid ${border.color}`,
                         }}
                       >
-                        <div style={{ color: mutedForeground.color }}>
-                          <span style={{ color: primary.color }}>
-                            {"{{name}}"}
-                          </span>{" "}
-                          - User's full name
-                        </div>
-                        <div style={{ color: mutedForeground.color }}>
-                          <span style={{ color: primary.color }}>
-                            {"{{email}}"}
-                          </span>{" "}
-                          - User's email address
-                        </div>
-                        <div style={{ color: mutedForeground.color }}>
-                          <span style={{ color: primary.color }}>
-                            {"{{verifyUrl}}"}
-                          </span>{" "}
-                          - Verification link
-                        </div>
-                        <div style={{ color: mutedForeground.color }}>
-                          <span style={{ color: primary.color }}>
-                            {"{{otp}}"}
-                          </span>{" "}
-                          - One-time password
-                        </div>
-                        <div style={{ color: mutedForeground.color }}>
-                          <span style={{ color: primary.color }}>
-                            {"{{year}}"}
-                          </span>{" "}
-                          - Current year
-                        </div>
+                        {DYNAMIC_VARIABLES.map((variable) => (
+                          <div
+                            key={variable.key}
+                            style={{ color: mutedForeground.color }}
+                          >
+                            <span style={{ color: primary.color }}>
+                              {variable.key}
+                            </span>{" "}
+                            - {variable.description}
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </motion.div>
                 )}
               </AnimatePresence>
 
+              {/* HTML Textarea */}
               <textarea
-                id="htmlTemplate"
-                value={htmlTemplate}
-                onChange={(e) => setHtmlTemplate(e.target.value)}
-                placeholder={`<div style="font-family: Arial, sans-serif; padding: 20px;">
-  <h2>Hello {{name}},</h2>
-  <p>Welcome to {{companyName}}! Click below to verify your account:</p>
-  <a href="{{verifyUrl}}" style="background: #3B82F6; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block;">Verify Account</a>
-  <p style="color: #666; margin-top: 20px;">© {{year}} {{companyName}}</p>
-</div>`}
+                id="htmlContent"
+                value={htmlContent}
+                onChange={(e) => setHtmlContent(e.target.value)}
+                placeholder={DEFAULT_PLACEHOLDER}
                 rows={16}
                 className="w-full px-4 py-3 rounded-lg focus:outline-none font-mono text-sm transition-all resize-y"
                 style={{
@@ -398,11 +459,12 @@ const EmailTemplateBuilder = () => {
                 onBlur={(e) =>
                   (e.currentTarget.style.borderColor = input.color)
                 }
+                aria-label="HTML template content"
               />
             </div>
           </motion.div>
 
-          {/* Right Column - Live Preview */}
+          {/* Preview Panel */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
@@ -417,6 +479,7 @@ const EmailTemplateBuilder = () => {
                   border: `1px solid ${border.color}`,
                 }}
               >
+                {/* Preview Header */}
                 <div
                   className="flex items-center justify-between px-6 py-4"
                   style={{
@@ -424,60 +487,117 @@ const EmailTemplateBuilder = () => {
                     color: primaryForeground.color,
                   }}
                 >
-                  <div>
-                    <h2 className="flex items-center gap-2 text-lg font-semibold">
-                      <svg
-                        className="w-5 h-5"
-                        fill="currentColor"
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
-                        <path
-                          fillRule="evenodd"
-                          clipRule="evenodd"
-                          d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
-                        />
-                      </svg>
-                      Live Preview
-                    </h2>
-                  </div>
+                  <h2 className="flex items-center gap-2 text-lg font-semibold">
+                    <svg
+                      className="w-5 h-5"
+                      fill="currentColor"
+                      viewBox="0 0 24 24"
+                      aria-hidden="true"
+                    >
+                      <path d="M12 15a3 3 0 100-6 3 3 0 000 6z" />
+                      <path
+                        fillRule="evenodd"
+                        clipRule="evenodd"
+                        d="M1.323 11.447C2.811 6.976 7.028 3.75 12.001 3.75c4.97 0 9.185 3.223 10.675 7.69.12.362.12.752 0 1.113-1.487 4.471-5.705 7.697-10.677 7.697-4.97 0-9.186-3.223-10.675-7.69a1.762 1.762 0 010-1.113zM17.25 12a5.25 5.25 0 11-10.5 0 5.25 5.25 0 0110.5 0z"
+                      />
+                    </svg>
+                    Live Preview
+                  </h2>
                   <div className="flex items-center gap-3">
                     <button
                       type="button"
-                      onClick={handleReset}
+                      onClick={resetTemplate}
                       className="p-1 rounded-md cursor-pointer transition-opacity hover:opacity-80"
-                      aria-label="Reset preview"
+                      aria-label="Reset template"
+                      disabled={isSaving}
                     >
                       <RotateCcw className="w-5 h-5" />
                     </button>
-
                     <button
                       type="button"
-                      onClick={handleSave}
-                      className="p-1 rounded-md cursor-pointer transition-opacity hover:opacity-80"
-                      aria-label="Preview status"
+                      onClick={saveTemplate}
+                      className="p-1 rounded-md cursor-pointer transition-opacity hover:opacity-80 relative"
+                      aria-label="Save template"
+                      disabled={isSaving}
                     >
-                      <CloudCheck className="w-5 h-5" />
+                      {isSaving ? (
+                        <Loader2 className="w-5 h-5 animate-spin" />
+                      ) : (
+                        <CloudCheck className="w-5 h-5" />
+                      )}
                     </button>
                   </div>
                 </div>
 
+                {/* Status Messages */}
+                <AnimatePresence>
+                  {(saveSuccess || saveError) && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -10 }}
+                      className="px-6 py-3"
+                      style={{
+                        backgroundColor: saveSuccess ? "#10b981" : "#ef4444",
+                        color: "white",
+                      }}
+                    >
+                      <p className="text-sm font-medium text-center">
+                        {saveSuccess
+                          ? "✓ Template saved successfully!"
+                          : `✗ ${saveError}`}
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+
+                {/* Preview Content */}
                 <div className="p-6">
                   <div
-                    className="rounded-lg p-6 min-h-[500px] overflow-auto"
+                    className="rounded-lg p-6 min-h-[500px] overflow-auto relative"
                     style={{
                       backgroundColor: card.color,
                     }}
                   >
+                    {/* Saving Overlay */}
+                    <AnimatePresence>
+                      {isSaving && (
+                        <motion.div
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          className="absolute inset-0 flex items-center justify-center rounded-lg z-10"
+                          style={{
+                            backgroundColor: "rgba(0, 0, 0, 0.5)",
+                            backdropFilter: "blur(4px)",
+                          }}
+                        >
+                          <div className="flex flex-col items-center gap-3">
+                            <Loader2
+                              className="w-12 h-12 animate-spin"
+                              style={{ color: primary.color }}
+                            />
+                            <p
+                              className="text-sm font-medium"
+                              style={{ color: primaryForeground.color }}
+                            >
+                              Saving template...
+                            </p>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+
                     <AnimatePresence mode="wait">
-                      {htmlTemplate ? (
+                      {htmlContent ? (
                         <motion.div
                           key="preview-content"
                           initial={{ opacity: 0 }}
                           animate={{ opacity: 1 }}
                           exit={{ opacity: 0 }}
-                          dangerouslySetInnerHTML={{ __html: getPreviewHtml() }}
+                          dangerouslySetInnerHTML={{
+                            __html: replaceVariablesInTemplate(htmlContent),
+                          }}
                           style={{
                             color: foreground.color,
                             fontSize: "14px",
@@ -501,7 +621,7 @@ const EmailTemplateBuilder = () => {
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
-                            style={{ color: mutedForeground.color }}
+                            aria-hidden="true"
                           >
                             <path
                               strokeLinecap="round"
