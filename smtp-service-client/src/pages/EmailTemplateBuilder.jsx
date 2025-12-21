@@ -3,11 +3,12 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
 import { RotateCcw, CloudCheck } from "lucide-react";
 
-export default function EmailTemplateBuilder() {
+const EmailTemplateBuilder = () => {
   const [subject, setSubject] = useState("");
   const [htmlTemplate, setHtmlTemplate] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [showVariablesHelp, setShowVariablesHelp] = useState(false);
+  const [isPublic, setIsPublic] = useState(false);
 
   const {
     card,
@@ -19,8 +20,6 @@ export default function EmailTemplateBuilder() {
     primaryForeground,
     hover,
     background,
-    secondary,
-    secondaryForeground,
     muted,
     ring,
   } = useThemeStyles();
@@ -48,6 +47,7 @@ export default function EmailTemplateBuilder() {
     setSubject("");
     setHtmlTemplate("");
     setIsActive(false);
+    setIsPublic(false);
   };
 
   const handleSave = () => {
@@ -140,7 +140,6 @@ export default function EmailTemplateBuilder() {
                     }
                   />
                 </div>
-
                 {/* Active Toggle */}
                 <div
                   className="flex items-center justify-between p-4 rounded-lg"
@@ -161,7 +160,9 @@ export default function EmailTemplateBuilder() {
                       className="text-xs mt-0.5"
                       style={{ color: mutedForeground.color }}
                     >
-                      Enable this template for use
+                      {isActive
+                        ? "Active - ready to use"
+                        : "Inactive - not in use"}
                     </p>
                   </div>
                   <button
@@ -183,6 +184,55 @@ export default function EmailTemplateBuilder() {
                       }}
                       className={`inline-block h-4 w-4 transform rounded-full transition ${
                         isActive ? "translate-x-6" : "translate-x-1"
+                      }`}
+                      style={{ backgroundColor: primaryForeground.color }}
+                    />
+                  </button>
+                </div>
+                {/* Public Or Private */}
+                <div
+                  className="flex items-center justify-between p-4 rounded-lg"
+                  style={{
+                    backgroundColor: muted.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
+                  <div>
+                    <label
+                      className="block text-sm font-medium"
+                      style={{ color: foreground.color }}
+                    >
+                      Template Visibility
+                    </label>
+                    <p
+                      className="text-xs mt-0.5"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      {isPublic
+                        ? "Public – available to all users"
+                        : "Private – only visible to you"}
+                    </p>
+                  </div>
+
+                  <button
+                    type="button"
+                    onClick={() => setIsPublic(!isPublic)}
+                    className="relative inline-flex h-6 w-11 items-center rounded-full transition-colors"
+                    style={{
+                      backgroundColor: isPublic
+                        ? primary.color
+                        : mutedForeground.color,
+                    }}
+                  >
+                    <motion.span
+                      layout
+                      transition={{
+                        type: "spring",
+                        stiffness: 500,
+                        damping: 30,
+                      }}
+                      className={`inline-block h-4 w-4 transform rounded-full ${
+                        isPublic ? "translate-x-6" : "translate-x-1"
                       }`}
                       style={{ backgroundColor: primaryForeground.color }}
                     />
@@ -479,4 +529,6 @@ export default function EmailTemplateBuilder() {
       </div>
     </div>
   );
-}
+};
+
+export default EmailTemplateBuilder;
