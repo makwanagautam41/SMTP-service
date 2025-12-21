@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useState } from "react";
 import {
   fetchEmailTemplatesService,
   createEmailTemplateService,
@@ -18,7 +18,34 @@ export const EmailTemplateProvider = ({ children }) => {
     const res = await fetchEmailTemplatesService(options);
 
     if (res.success) {
-      setTemplates(res.data.templates || []);
+      const newTemplates = res.data.templates || [];
+
+      // If it's page 1, replace templates. Otherwise, append new public templates
+      if (options.page === 1) {
+        setTemplates(newTemplates);
+      } else {
+        // On subsequent pages, we need to:
+        // 1. Keep all user templates (they're always included)
+        // 2. Add new public templates
+        setTemplates((prev) => {
+          // Separate previous templates
+          const prevUserTemplates = prev.filter(
+            (t) =>
+              t.owner === res.data.userId || t.createdBy === res.data.userId
+          );
+
+          // Get only the new public templates (not duplicates)
+          const newPublicTemplates = newTemplates.filter(
+            (t) =>
+              t.owner !== res.data.userId &&
+              t.createdBy !== res.data.userId &&
+              !prev.find((p) => p._id === t._id)
+          );
+
+          return [...prevUserTemplates, ...newPublicTemplates];
+        });
+      }
+
       setPagination(res.data.pagination || null);
       setMessage(res.data.message || "");
     } else {
@@ -29,10 +56,6 @@ export const EmailTemplateProvider = ({ children }) => {
 
     setLoading(false);
   };
-
-  useEffect(() => {
-    fetchTemplates({ page: 1, limit: 10 });
-  }, []);
 
   const createEmailTemplate = async (templateData) => {
     const res = await createEmailTemplateService(templateData);
