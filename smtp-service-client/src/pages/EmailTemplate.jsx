@@ -197,26 +197,6 @@ const EmailTemplate = () => {
                 {template.subject}
               </h3>
 
-              <div className="flex gap-2 mb-3">
-                <span
-                  className="px-2 py-1 rounded text-xs text-white"
-                  style={{
-                    backgroundColor: getVisibilityColor(template.visibility),
-                  }}
-                >
-                  {template.visibility}
-                </span>
-
-                <span
-                  className="px-2 py-1 rounded text-xs text-white"
-                  style={{
-                    backgroundColor: getStatusColor(template.status),
-                  }}
-                >
-                  {template.status}
-                </span>
-              </div>
-
               <button
                 onClick={() => {
                   setSelectedTemplate(template);
