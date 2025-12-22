@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { Loader2, Mail, Eye, ChevronLeft, ChevronRight } from "lucide-react";
 
 import { useEmailTemplate } from "../context/EmailTemplateContext";
+import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import TemplatePreviewModal from "../components/TemplatePreviewModal";
 
@@ -23,6 +24,7 @@ const EmailTemplate = () => {
     fetchPublicTemplates,
     fetchMyTemplates,
   } = useEmailTemplate();
+  const { user } = useAuth();
 
   const theme = useThemeStyles();
   const {
@@ -132,23 +134,25 @@ const EmailTemplate = () => {
 
         {/* TABS */}
         <div className="flex gap-2">
-          {Object.values(TAB_CONFIG).map((tab) => (
-            <motion.button
-              key={tab}
-              onClick={() => setActiveTab(tab)}
-              className="px-5 py-2.5 rounded-lg text-sm font-medium"
-              style={{
-                backgroundColor: activeTab === tab ? primary.color : card.color,
-                color:
-                  activeTab === tab
-                    ? primaryForeground.color
-                    : foreground.color,
-                border: `1px solid ${border.color}`,
-              }}
-            >
-              {tab === "public" ? "Public Templates" : "My Templates"}
-            </motion.button>
-          ))}
+          {user &&
+            Object.values(TAB_CONFIG).map((tab) => (
+              <motion.button
+                key={tab}
+                onClick={() => setActiveTab(tab)}
+                className="px-5 py-2.5 rounded-lg text-sm font-medium"
+                style={{
+                  backgroundColor:
+                    activeTab === tab ? primary.color : card.color,
+                  color:
+                    activeTab === tab
+                      ? primaryForeground.color
+                      : foreground.color,
+                  border: `1px solid ${border.color}`,
+                }}
+              >
+                {tab === "public" ? "Public Templates" : "My Templates"}
+              </motion.button>
+            ))}
         </div>
       </div>
 

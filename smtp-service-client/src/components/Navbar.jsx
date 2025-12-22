@@ -88,6 +88,7 @@ const Navbar = () => {
       href: "/docs",
       icon: MdOutlineDocumentScanner,
     },
+    { name: "Email Template", href: "/email-template", icon: User },
   ];
 
   const privateLinks = [
@@ -95,7 +96,6 @@ const Navbar = () => {
     { name: "API Keys", href: "/apikeys", icon: KeyRound },
     { name: "APP Credentials", href: "/app-credentials", icon: TbLockAccess },
     { name: "Profile", href: "/profile", icon: User },
-    { name: "Email Template", href: "/email-template", icon: User },
   ];
 
   const navLinks = user ? [...publicLinks, ...privateLinks] : publicLinks;

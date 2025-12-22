@@ -26,6 +26,7 @@ router.post("/register", registerUser);
 router.post("/verify/:token", verifyUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
+router.get("/email-templates/public", getPublicEmailTemplates);
 
 // protected route
 router.use(protect);
@@ -47,7 +48,6 @@ router.delete("/app/:id", deleteAppCredentials);
 router.get("/dashboard", getUserDashboard);
 
 // email template routes
-router.get("/email-templates/public", getPublicEmailTemplates);
 router.get("/email-templates/my", getMyEmailTemplates);
 router.post("/create-email-template", protect, createEmailTemplate);
 
