@@ -660,84 +660,75 @@ export const getUserDashboard = async (req, res) => {
   }
 };
 
-export const getEmailTemplates = async (req, res) => {
+export const getMyEmailTemplates = async (req, res) => {
   try {
     const userId = new mongoose.Types.ObjectId(req.user._id);
 
+    const { type, search } = req.query;
+
+    const query = {
+      owner: userId,
+    };
+
+    if (type) query.type = type;
+
+    if (search) {
+      query.subject = { $regex: search, $options: "i" };
+    }
+
+    const templates = await EmailTemplate.find(query).sort({
+      createdAt: -1,
+    });
+
+    return res.status(200).json({
+      templates,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Failed to fetch user templates",
+      error: err.message,
+    });
+  }
+};
+
+export const getPublicEmailTemplates = async (req, res) => {
+  try {
     const page = Math.max(parseInt(req.query.page) || 1, 1);
     const limit = Math.min(parseInt(req.query.limit) || 10, 50);
     const skip = (page - 1) * limit;
 
     const { type, search } = req.query;
 
-    const userQuery = {
-      owner: userId,
-    };
-
-    const publicQuery = {
+    const query = {
       visibility: "public",
       status: "active",
-      owner: { $ne: userId },
     };
 
-    if (type) {
-      userQuery.type = type;
-      publicQuery.type = type;
-    }
+    if (type) query.type = type;
 
     if (search) {
-      const regex = { $regex: search, $options: "i" };
-      userQuery.subject = regex;
-      publicQuery.subject = regex;
+      query.subject = { $regex: search, $options: "i" };
     }
 
-    const [userTemplates, publicTemplates, publicTotal] = await Promise.all([
-      EmailTemplate.find(userQuery).sort({ createdAt: -1 }),
-
-      EmailTemplate.find(publicQuery)
-        .sort({ createdAt: -1 })
-        .skip(skip)
-        .limit(limit),
-
-      EmailTemplate.countDocuments(publicQuery),
+    const [templates, total] = await Promise.all([
+      EmailTemplate.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      EmailTemplate.countDocuments(query),
     ]);
 
-    const combinedTemplates = [...userTemplates, ...publicTemplates];
-
-    if (!combinedTemplates.length) {
-      return res.status(200).json({
-        templates: [],
-        message: "No templates found",
-        pagination: {
-          page,
-          limit,
-          total: 0,
-          totalPages: 0,
-          hasNextPage: false,
-          hasPrevPage: false,
-        },
-      });
-    }
-
     return res.status(200).json({
-      templates: combinedTemplates,
-      message: "Templates fetched successfully",
-      meta: {
-        userTemplatesCount: userTemplates.length,
-        publicTemplatesCount: publicTemplates.length,
-      },
+      templates,
       pagination: {
         page,
         limit,
-        total: publicTotal,
-        totalPages: Math.ceil(publicTotal / limit),
-        hasNextPage: page * limit < publicTotal,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasNextPage: page * limit < total,
         hasPrevPage: page > 1,
       },
     });
   } catch (err) {
     return res.status(500).json({
-      message: "Server error",
+      message: "Failed to fetch public templates",
       error: err.message,
     });
   }

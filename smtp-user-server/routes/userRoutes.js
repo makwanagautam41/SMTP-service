@@ -14,7 +14,8 @@ import {
   deleteAppCredentials,
   viewDecryptedAppCredential,
   getUserDashboard,
-  getEmailTemplates,
+  getPublicEmailTemplates,
+  getMyEmailTemplates,
   createEmailTemplate,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
@@ -46,7 +47,8 @@ router.delete("/app/:id", deleteAppCredentials);
 router.get("/dashboard", getUserDashboard);
 
 // email template routes
-router.get("/email-templates", getEmailTemplates);
+router.get("/email-templates/public", getPublicEmailTemplates);
+router.get("/email-templates/my", getMyEmailTemplates);
 router.post("/create-email-template", protect, createEmailTemplate);
 
 export default router;

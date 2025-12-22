@@ -1,75 +1,54 @@
 import React, { createContext, useContext, useState } from "react";
 import {
-  fetchEmailTemplatesService,
+  fetchPublicTemplatesService,
+  fetchMyTemplatesService,
   createEmailTemplateService,
 } from "../services/emailTemplateServices";
 
 const EmailTemplateContext = createContext();
 
 export const EmailTemplateProvider = ({ children }) => {
-  const [templates, setTemplates] = useState([]);
+  const [publicTemplates, setPublicTemplates] = useState([]);
+  const [myTemplates, setMyTemplates] = useState([]);
   const [pagination, setPagination] = useState(null);
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState("");
 
-  const fetchTemplates = async (options = {}) => {
+  const fetchPublicTemplates = async (options = {}) => {
     setLoading(true);
-
-    const res = await fetchEmailTemplatesService(options);
-
+    const res = await fetchPublicTemplatesService(options);
     if (res.success) {
-      const newTemplates = res.data.templates || [];
-
-      // If it's page 1, replace templates. Otherwise, append new public templates
       if (options.page === 1) {
-        setTemplates(newTemplates);
+        setPublicTemplates(res.data.templates);
       } else {
-        // On subsequent pages, we need to:
-        // 1. Keep all user templates (they're always included)
-        // 2. Add new public templates
-        setTemplates((prev) => {
-          // Separate previous templates
-          const prevUserTemplates = prev.filter(
-            (t) =>
-              t.owner === res.data.userId || t.createdBy === res.data.userId
-          );
-
-          // Get only the new public templates (not duplicates)
-          const newPublicTemplates = newTemplates.filter(
-            (t) =>
-              t.owner !== res.data.userId &&
-              t.createdBy !== res.data.userId &&
-              !prev.find((p) => p._id === t._id)
-          );
-
-          return [...prevUserTemplates, ...newPublicTemplates];
-        });
+        setPublicTemplates((prev) => [...prev, ...res.data.templates]);
       }
-
-      setPagination(res.data.pagination || null);
-      setMessage(res.data.message || "");
-    } else {
-      setTemplates([]);
-      setMessage(res.message);
-      console.error("Fetch error:", res.message);
+      setPagination(res.data.pagination);
     }
-
     setLoading(false);
   };
 
-  const createEmailTemplate = async (templateData) => {
-    const res = await createEmailTemplateService(templateData);
-    return res;
+  const fetchMyTemplates = async () => {
+    setLoading(true);
+    const res = await fetchMyTemplatesService();
+    if (res.success) {
+      setMyTemplates(res.data.templates);
+    }
+    setLoading(false);
+  };
+
+  const createEmailTemplate = async (data) => {
+    return createEmailTemplateService(data);
   };
 
   return (
     <EmailTemplateContext.Provider
       value={{
-        templates,
+        publicTemplates,
+        myTemplates,
         pagination,
         loading,
-        message,
-        fetchTemplates,
+        fetchPublicTemplates,
+        fetchMyTemplates,
         createEmailTemplate,
       }}
     >

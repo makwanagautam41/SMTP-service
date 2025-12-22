@@ -1,42 +1,26 @@
 import API from "./api";
 
-const handleRequest = async (axiosPromise) => {
+const handleRequest = async (promise) => {
   try {
-    const res = await axiosPromise;
-    return {
-      success: true,
-      data: res.data,
-      message: res.data?.message || "Success",
-    };
+    const res = await promise;
+    return { success: true, data: res.data };
   } catch (err) {
     return {
       success: false,
-      data: null,
       message:
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        err.message ||
-        "Something went wrong",
-      status: err.response?.status || 500,
+        err.response?.data?.message || err.response?.data?.error || err.message,
     };
   }
 };
 
-export const fetchEmailTemplatesService = async ({
-  page = 1,
-  limit = 10,
-  tab = "all",
-  type,
-  search,
-} = {}) => {
-  const params = new URLSearchParams({ page, limit, tab });
-
-  if (type) params.append("type", type);
-  if (search) params.append("search", search);
-
-  return await handleRequest(
-    API.get(`/users/email-templates?${params.toString()}`)
+export const fetchPublicTemplatesService = ({ page = 1, limit = 10 } = {}) => {
+  return handleRequest(
+    API.get(`/users/email-templates/public?page=${page}&limit=${limit}`)
   );
+};
+
+export const fetchMyTemplatesService = () => {
+  return handleRequest(API.get("/users/email-templates/my"));
 };
 
 export const createEmailTemplateService = async (templateData) => {
