@@ -1,7 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Loader2, Mail, Eye, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  Mail,
+  Eye,
+  ChevronLeft,
+  ChevronRight,
+  FileCode,
+} from "lucide-react";
 
 import { useEmailTemplate } from "../context/EmailTemplateContext";
 import { useAuth } from "../context/AuthContext";
@@ -35,8 +42,6 @@ const EmailTemplate = () => {
     foreground,
     mutedForeground,
     primaryForeground,
-    secondary,
-    secondaryForeground,
   } = theme;
 
   const [activeTab, setActiveTab] = useState(TAB_CONFIG.PUBLIC);
@@ -44,8 +49,9 @@ const EmailTemplate = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState(null);
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [previewMode, setPreviewMode] = useState("template");
 
-  //  FETCH DATA BASED ON TAB
+  // FETCH DATA BASED ON TAB
   useEffect(() => {
     setClientPage(1);
 
@@ -54,13 +60,13 @@ const EmailTemplate = () => {
     } else {
       fetchMyTemplates();
     }
-  }, [activeTab]);
+  }, [activeTab, fetchPublicTemplates, fetchMyTemplates]);
 
-  //  DATA SOURCE
+  // DATA SOURCE
   const displayedTemplates =
     activeTab === TAB_CONFIG.PUBLIC ? publicTemplates : myTemplates;
 
-  //  CLIENT PAGINATION
+  // CLIENT PAGINATION
   const totalClientPages = Math.ceil(
     displayedTemplates.length / ITEMS_PER_PAGE
   );
@@ -76,7 +82,7 @@ const EmailTemplate = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  //  LOAD MORE (PUBLIC ONLY)
+  // LOAD MORE (PUBLIC ONLY)
   const handleLoadMore = async () => {
     if (!pagination?.hasNextPage || isLoadingMore) return;
 
@@ -87,12 +93,6 @@ const EmailTemplate = () => {
     });
     setIsLoadingMore(false);
   };
-
-  const getStatusColor = (status) =>
-    status === "active" ? "#10b981" : "#6b7280";
-
-  const getVisibilityColor = (visibility) =>
-    visibility === "public" ? primary.color : mutedForeground.color;
 
   return (
     <div
@@ -190,7 +190,7 @@ const EmailTemplate = () => {
           {paginatedTemplates.map((template) => (
             <motion.div
               key={template._id}
-              className="rounded-xl p-4 sm:p-5 flex flex-col h-full"
+              className="rounded-xl p-5 flex flex-col h-full"
               style={{
                 backgroundColor: card.color,
                 border: `1px solid ${border.color}`,
@@ -205,23 +205,26 @@ const EmailTemplate = () => {
               >
                 <img
                   src={template.owner?.profilePic}
-                  alt="User Profile"
-                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                  alt={template.owner?.name}
+                  className="w-8 h-8 rounded-full object-cover"
                 />
-                <p className="text-sm font-medium truncate">
+                <p
+                  className="text-sm font-medium truncate"
+                  style={{ color: foreground.color }}
+                >
                   {template.owner?.name}
                 </p>
               </div>
 
               <h3
-                className="font-semibold mb-3 line-clamp-2 text-base sm:text-lg"
+                className="font-semibold mb-3 line-clamp-2"
                 style={{ color: foreground.color }}
               >
                 {template.subject}
               </h3>
 
               <div
-                className="rounded-lg overflow-hidden text-xs sm:text-sm flex-1 mb-4"
+                className="flex-1 mb-4 rounded-lg overflow-hidden text-sm"
                 style={{
                   backgroundColor: background.color,
                   border: `1px solid ${border.color}`,
@@ -229,26 +232,45 @@ const EmailTemplate = () => {
                 }}
               >
                 <div
-                  className="p-2 sm:p-3 scale-[0.85] sm:scale-[0.9] origin-top pointer-events-none"
-                  style={{ color: foreground.color }}
+                  className="p-3 scale-[0.9] origin-top pointer-events-none"
                   dangerouslySetInnerHTML={{ __html: template.html }}
                 />
               </div>
 
-              <button
-                onClick={() => {
-                  setSelectedTemplate(template);
-                  setIsPreviewOpen(true);
-                }}
-                className="mt-auto w-full px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium"
-                style={{
-                  backgroundColor: primary.color,
-                  color: primaryForeground.color,
-                }}
-              >
-                <Eye size={16} />
-                Preview
-              </button>
+              <div className="mt-auto flex gap-2">
+                <button
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    setPreviewMode("template");
+                    setIsPreviewOpen(true);
+                  }}
+                  className="flex-1 px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium transition-opacity hover:opacity-90"
+                  style={{
+                    backgroundColor: primary.color,
+                    color: primaryForeground.color,
+                  }}
+                >
+                  <Eye size={16} />
+                  Preview
+                </button>
+
+                <button
+                  onClick={() => {
+                    setSelectedTemplate(template);
+                    setPreviewMode("details");
+                    setIsPreviewOpen(true);
+                  }}
+                  className="px-3 py-2.5 rounded-lg transition-opacity hover:opacity-90"
+                  style={{
+                    backgroundColor: background.color,
+                    border: `1px solid ${border.color}`,
+                    color: foreground.color,
+                  }}
+                  aria-label="View details"
+                >
+                  <FileCode size={18} />
+                </button>
+              </div>
             </motion.div>
           ))}
         </div>
@@ -259,12 +281,13 @@ const EmailTemplate = () => {
             <button
               onClick={() => handleClientPageChange(clientPage - 1)}
               disabled={clientPage === 1}
-              className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
               style={{
                 backgroundColor: card.color,
                 border: `1px solid ${border.color}`,
                 color: foreground.color,
               }}
+              aria-label="Previous page"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -279,12 +302,13 @@ const EmailTemplate = () => {
             <button
               onClick={() => handleClientPageChange(clientPage + 1)}
               disabled={clientPage === totalClientPages}
-              className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="p-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
               style={{
                 backgroundColor: card.color,
                 border: `1px solid ${border.color}`,
                 color: foreground.color,
               }}
+              aria-label="Next page"
             >
               <ChevronRight className="w-5 h-5" />
             </button>
@@ -297,7 +321,7 @@ const EmailTemplate = () => {
             <button
               onClick={handleLoadMore}
               disabled={isLoadingMore}
-              className="px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-6 py-2.5 sm:py-3 rounded-lg text-sm sm:text-base disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
               style={{
                 backgroundColor: primary.color,
                 color: primaryForeground.color,
@@ -312,6 +336,7 @@ const EmailTemplate = () => {
       <TemplatePreviewModal
         isOpen={isPreviewOpen}
         template={selectedTemplate}
+        previewMode={previewMode}
         onClose={() => setIsPreviewOpen(false)}
       />
     </div>
