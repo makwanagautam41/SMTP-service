@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useRef } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import {
@@ -51,16 +51,35 @@ const EmailTemplate = () => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewMode, setPreviewMode] = useState("template");
 
-  // FETCH DATA BASED ON TAB
+  // Track if initial fetch has been done for each tab
+  const hasFetchedPublic = useRef(false);
+  const hasFetchedMy = useRef(false);
+
+  // Memoize fetch functions to prevent infinite loops
+  const fetchPublicData = useCallback(() => {
+    if (!hasFetchedPublic.current) {
+      hasFetchedPublic.current = true;
+      fetchPublicTemplates({ page: 1, limit: 10 });
+    }
+  }, [fetchPublicTemplates]);
+
+  const fetchMyData = useCallback(() => {
+    if (!hasFetchedMy.current) {
+      hasFetchedMy.current = true;
+      fetchMyTemplates();
+    }
+  }, [fetchMyTemplates]);
+
+  // FETCH DATA BASED ON TAB - Only fetch once per tab
   useEffect(() => {
     setClientPage(1);
 
     if (activeTab === TAB_CONFIG.PUBLIC) {
-      fetchPublicTemplates({ page: 1, limit: 10 });
+      fetchPublicData();
     } else {
-      fetchMyTemplates();
+      fetchMyData();
     }
-  }, [activeTab, fetchPublicTemplates, fetchMyTemplates]);
+  }, [activeTab, fetchPublicData, fetchMyData]);
 
   // DATA SOURCE
   const displayedTemplates =
