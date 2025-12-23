@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Copy, Check } from "lucide-react";
+import { X, Copy, Check, Braces } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 
 const TemplatePreviewModal = ({ isOpen, template, previewMode, onClose }) => {
@@ -40,6 +40,36 @@ const TemplatePreviewModal = ({ isOpen, template, previewMode, onClose }) => {
       console.error("Failed to copy:", err);
     }
   };
+
+  // Extract template variables from HTML
+  const extractTemplateVariables = (html) => {
+    if (!html) return [];
+
+    const variablePatterns = [
+      /\{\{([^}]+)\}\}/g, // {{variable}}
+      /\$\{([^}]+)\}/g, // ${variable}
+      /%([A-Z_][A-Z0-9_]*)%/g, // %VARIABLE%
+      /\[([A-Z_][A-Z0-9_]*)\]/g, // [VARIABLE]
+    ];
+
+    const variables = new Set();
+
+    variablePatterns.forEach((pattern) => {
+      let match;
+      while ((match = pattern.exec(html)) !== null) {
+        const varName = match[1].trim();
+        if (varName) {
+          variables.add(varName);
+        }
+      }
+    });
+
+    return Array.from(variables).sort();
+  };
+
+  const templateVariables = useMemo(() => {
+    return extractTemplateVariables(template?.html);
+  }, [template?.html]);
 
   if (!isOpen || !template) return null;
 
@@ -105,105 +135,165 @@ const TemplatePreviewModal = ({ isOpen, template, previewMode, onClose }) => {
             )}
 
             {previewMode === "details" && (
-              <div
-                className="p-4 rounded-lg text-sm space-y-3"
-                style={{
-                  backgroundColor: background.color,
-                  border: `1px solid ${border.color}`,
-                }}
-              >
-                <div>
-                  <span
-                    className="text-xs block mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    Template ID
-                  </span>
-                  <div className="flex items-center gap-2">
-                    <p className="font-medium break-all flex-1">
-                      {template.templateId}
-                    </p>
-                    <button
-                      onClick={handleCopyTemplateId}
-                      className="flex items-center justify-center w-8 h-8 rounded-lg transition-opacity hover:opacity-80 flex-shrink-0"
-                      style={{
-                        border: `1px solid ${border.color}`,
-                        color: copied ? "#fff" : foreground.color,
-                      }}
-                      aria-label="Copy template ID"
-                    >
-                      {copied ? <Check size={16} /> : <Copy size={16} />}
-                    </button>
-                  </div>
-                </div>
-
-                <div>
-                  <span
-                    className="text-xs block mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    Owner
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {template.owner?.profilePic && (
-                      <img
-                        src={template.owner.profilePic}
-                        alt={template.owner.name}
-                        className="w-6 h-6 rounded-full object-cover"
-                      />
-                    )}
-                    <p className="font-medium">
-                      {template.owner?.name || "Unknown"}
-                    </p>
-                  </div>
-                </div>
-
-                <div>
-                  <span
-                    className="text-xs block mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    Created At
-                  </span>
-                  <p className="font-medium">
-                    {new Date(template.createdAt).toLocaleString()}
-                  </p>
-                </div>
-
-                {template.updatedAt && (
+              <div className="space-y-4">
+                {/* Template Details */}
+                <div
+                  className="p-4 rounded-lg text-sm space-y-3"
+                  style={{
+                    backgroundColor: background.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
                   <div>
                     <span
                       className="text-xs block mb-1"
                       style={{ color: mutedForeground.color }}
                     >
-                      Last Updated
+                      Template ID
+                    </span>
+                    <div className="flex items-center gap-2">
+                      <p className="font-medium break-all flex-1">
+                        {template.templateId}
+                      </p>
+                      <button
+                        onClick={handleCopyTemplateId}
+                        className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:opacity-80 flex-shrink-0"
+                        style={{
+                          backgroundColor: copied
+                            ? primary.color
+                            : background.color,
+                          border: `1px solid ${border.color}`,
+                          color: copied ? "#fff" : foreground.color,
+                        }}
+                        aria-label="Copy template ID"
+                      >
+                        {copied ? <Check size={16} /> : <Copy size={16} />}
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span
+                      className="text-xs block mb-1"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      Owner
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {template.owner?.profilePic && (
+                        <img
+                          src={template.owner.profilePic}
+                          alt={template.owner.name}
+                          className="w-6 h-6 rounded-full object-cover"
+                        />
+                      )}
+                      <p className="font-medium">
+                        {template.owner?.name || "Unknown"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span
+                      className="text-xs block mb-1"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      Created At
                     </span>
                     <p className="font-medium">
-                      {new Date(template.updatedAt).toLocaleString()}
+                      {new Date(template.createdAt).toLocaleString()}
                     </p>
                   </div>
-                )}
 
-                <div>
-                  <span
-                    className="text-xs block mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    Visibility
-                  </span>
-                  <p className="font-medium capitalize">
-                    {template.visibility}
-                  </p>
+                  {template.updatedAt && (
+                    <div>
+                      <span
+                        className="text-xs block mb-1"
+                        style={{ color: mutedForeground.color }}
+                      >
+                        Last Updated
+                      </span>
+                      <p className="font-medium">
+                        {new Date(template.updatedAt).toLocaleString()}
+                      </p>
+                    </div>
+                  )}
+
+                  <div>
+                    <span
+                      className="text-xs block mb-1"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      Visibility
+                    </span>
+                    <p className="font-medium capitalize">
+                      {template.visibility}
+                    </p>
+                  </div>
+
+                  <div>
+                    <span
+                      className="text-xs block mb-1"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      Status
+                    </span>
+                    <p className="font-medium capitalize">{template.status}</p>
+                  </div>
                 </div>
 
-                <div>
-                  <span
-                    className="text-xs block mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    Status
-                  </span>
-                  <p className="font-medium capitalize">{template.status}</p>
+                {/* Template Variables Section */}
+                <div
+                  className="p-4 rounded-lg text-sm"
+                  style={{
+                    backgroundColor: background.color,
+                    border: `1px solid ${border.color}`,
+                  }}
+                >
+                  <div className="flex items-center gap-2 mb-3">
+                    <Braces size={16} style={{ color: primary.color }} />
+                    <span
+                      className="text-xs font-semibold"
+                      style={{ color: foreground.color }}
+                    >
+                      Template Variables
+                    </span>
+                    <span
+                      className="text-xs px-2 py-0.5 rounded-full"
+                      style={{
+                        backgroundColor: card.color,
+                        color: mutedForeground.color,
+                        border: `1px solid ${border.color}`,
+                      }}
+                    >
+                      {templateVariables.length}
+                    </span>
+                  </div>
+
+                  {templateVariables.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                      {templateVariables.map((variable, index) => (
+                        <span
+                          key={index}
+                          className="px-3 py-1.5 rounded-lg text-xs font-mono"
+                          style={{
+                            backgroundColor: card.color,
+                            border: `1px solid ${border.color}`,
+                            color: foreground.color,
+                          }}
+                        >
+                          {variable}
+                        </span>
+                      ))}
+                    </div>
+                  ) : (
+                    <p
+                      className="text-xs text-center py-4"
+                      style={{ color: mutedForeground.color }}
+                    >
+                      No dynamic variables found in this template
+                    </p>
+                  )}
                 </div>
               </div>
             )}
