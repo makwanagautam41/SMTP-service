@@ -711,7 +711,11 @@ export const getPublicEmailTemplates = async (req, res) => {
     }
 
     const [templates, total] = await Promise.all([
-      EmailTemplate.find(query).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      EmailTemplate.find(query)
+        .populate("owner", "_id name email profilePic")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit),
       EmailTemplate.countDocuments(query),
     ]);
 

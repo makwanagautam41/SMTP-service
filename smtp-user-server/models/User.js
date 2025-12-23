@@ -29,6 +29,12 @@ const userSchema = new mongoose.Schema(
       default: null,
       select: false,
     },
+    profilePic: {
+      type: String,
+      default: function () {
+        return `https://api.dicebear.com/7.x/identicon/svg?seed=${this._id}`;
+      },
+    },
   },
   { timestamps: true }
 );
