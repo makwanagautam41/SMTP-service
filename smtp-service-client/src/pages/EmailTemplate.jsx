@@ -190,36 +190,48 @@ const EmailTemplate = () => {
           {paginatedTemplates.map((template) => (
             <motion.div
               key={template._id}
-              className="rounded-xl p-4 sm:p-5"
+              className="rounded-xl p-4 sm:p-5 flex flex-col h-full"
               style={{
                 backgroundColor: card.color,
                 border: `1px solid ${border.color}`,
               }}
             >
+              <div
+                className="flex items-center gap-3 mb-4 rounded-full px-3 py-1.5"
+                style={{
+                  backgroundColor: background.color,
+                  border: `1px solid ${border.color}`,
+                }}
+              >
+                <img
+                  src={template.owner?.profilePic}
+                  alt="User Profile"
+                  className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                />
+                <p className="text-sm font-medium truncate">
+                  {template.owner?.name}
+                </p>
+              </div>
+
               <h3
-                className="font-semibold mb-2 line-clamp-2 text-base sm:text-lg"
+                className="font-semibold mb-3 line-clamp-2 text-base sm:text-lg"
                 style={{ color: foreground.color }}
               >
                 {template.subject}
               </h3>
 
-              {/* TEMPLATE DEMO PREVIEW */}
               <div
-                className="mb-3 sm:mb-4 rounded-lg overflow-hidden text-xs sm:text-sm pointer-events-none"
+                className="rounded-lg overflow-hidden text-xs sm:text-sm flex-1 mb-4"
                 style={{
                   backgroundColor: background.color,
                   border: `1px solid ${border.color}`,
-                  maxHeight: "100px",
+                  maxHeight: "110px",
                 }}
               >
                 <div
-                  className="p-2 sm:p-3 scale-[0.85] sm:scale-[0.9] origin-top"
-                  style={{
-                    color: foreground.color,
-                  }}
-                  dangerouslySetInnerHTML={{
-                    __html: template.html,
-                  }}
+                  className="p-2 sm:p-3 scale-[0.85] sm:scale-[0.9] origin-top pointer-events-none"
+                  style={{ color: foreground.color }}
+                  dangerouslySetInnerHTML={{ __html: template.html }}
                 />
               </div>
 
@@ -228,7 +240,7 @@ const EmailTemplate = () => {
                   setSelectedTemplate(template);
                   setIsPreviewOpen(true);
                 }}
-                className="w-full px-4 py-2 sm:py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm"
+                className="mt-auto w-full px-4 py-2.5 rounded-lg flex items-center justify-center gap-2 text-sm font-medium"
                 style={{
                   backgroundColor: primary.color,
                   color: primaryForeground.color,
