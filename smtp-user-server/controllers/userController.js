@@ -676,9 +676,11 @@ export const getMyEmailTemplates = async (req, res) => {
       query.subject = { $regex: search, $options: "i" };
     }
 
-    const templates = await EmailTemplate.find(query).sort({
-      createdAt: -1,
-    });
+    const templates = await EmailTemplate.find(query)
+      .populate("owner", "_id name email profilePic")
+      .sort({
+        createdAt: -1,
+      });
 
     return res.status(200).json({
       templates,
