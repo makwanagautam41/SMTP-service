@@ -1,9 +1,8 @@
 import express from "express";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { modifyEmailTemplateByAI } from "../controllers/geminiController.js";
 
 const geminiRouter = express.Router();
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+geminiRouter.post("/modify-email-template-by-ai", modifyEmailTemplateByAI);
 
 export default geminiRouter;
-    
