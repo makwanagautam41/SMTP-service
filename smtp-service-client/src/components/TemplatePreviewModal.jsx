@@ -159,9 +159,6 @@ const TemplatePreviewModal = ({ isOpen, template, previewMode, onClose }) => {
                         onClick={handleCopyTemplateId}
                         className="flex items-center justify-center w-8 h-8 rounded-lg transition-all hover:opacity-80 flex-shrink-0"
                         style={{
-                          backgroundColor: copied
-                            ? primary.color
-                            : background.color,
                           border: `1px solid ${border.color}`,
                           color: copied ? "#fff" : foreground.color,
                         }}
