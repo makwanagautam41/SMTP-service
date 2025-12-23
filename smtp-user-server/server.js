@@ -2,7 +2,8 @@ import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
 import { connectDB } from "./config/db.js";
-import userRoutes from "./routes/userRoutes.js";
+import userRouter from "./routes/userRoutes.js";
+import geminiRouter from "./routes/geminiRoutes.js";
 import cookieParser from "cookie-parser";
 
 dotenv.config();
@@ -22,8 +23,10 @@ app.use(cookieParser());
 
 const PORT = process.env.PORT || 3000;
 
-app.use("/api/users", userRoutes);
+app.use("/api/users", userRouter);
+app.use("/api/gemini", geminiRouter);
 
+// start server
 (async function bootstrap() {
   await connectDB(process.env.MONGO_URI);
 
