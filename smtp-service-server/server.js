@@ -8,6 +8,7 @@ import "./models/User.js";
 import { info } from "./utils/logger.js";
 import cookieParser from "cookie-parser";
 import emailEventsRoutes from "./routes/emailEventsRoutes.js";
+import { emailSendLimiter, emailStatusLimiter, generalApiLimiter } from "./middleware/rateLimiter.js";
 
 dotenv.config();
 const app = express();
@@ -18,7 +19,7 @@ app.use(
     origin: "*", // allow all domains
     methods: ["GET", "POST", "OPTIONS", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "x-api-key", "Authorization"],
-  })
+  }),
 );
 
 app.use(express.json());
@@ -26,6 +27,12 @@ app.use(cookieParser());
 
 const PORT = process.env.PORT || 5000;
 const API_PREFIX = process.env.API_PREFIX || "/api";
+
+// Apply rate limiting
+app.use(`${API_PREFIX}/email`, generalApiLimiter);
+app.use(`${API_PREFIX}/email/send`, emailSendLimiter);
+app.use(`${API_PREFIX}/email/status`, emailStatusLimiter);
+app.use(`${API_PREFIX}/email/events`, emailStatusLimiter);
 
 // API routes
 app.use(`${API_PREFIX}/email`, emailRoutes);
@@ -38,7 +45,6 @@ app.use(`${API_PREFIX}/email`, emailEventsRoutes);
   getWorker();
 
   app.listen(PORT, () => {
-    info(`🚀 API server listening on port ${PORT}`);
-    info(`📨 Email API available at ${API_PREFIX}/email/send`);
+    info(`Email API server listening on port ${PORT}`);
   });
 })();

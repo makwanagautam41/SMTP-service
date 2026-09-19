@@ -17,6 +17,10 @@ import {
   getPublicEmailTemplates,
   getMyEmailTemplates,
   createEmailTemplate,
+  getEmailTemplateByTemplateId,
+  forgotPassword,
+  verifyResetToken,
+  resetPassword,
 } from "../controllers/userController.js";
 import { protect } from "../middleware/auth.js";
 
@@ -27,11 +31,18 @@ router.post("/verify/:token", verifyUser);
 router.post("/login", loginUser);
 router.post("/logout", logoutUser);
 router.get("/email-templates/public", getPublicEmailTemplates);
+router.post("/get-variables", getEmailTemplateByTemplateId);
+
+// Forgot password routes
+router.post("/forgot-password", forgotPassword);
+router.get("/verify-reset-token/:token", verifyResetToken);
+router.post("/reset-password/:token", resetPassword);
 
 // protected route
 router.use(protect);
 
 router.get("/me", getUserDetails);
+router.get("/dashboard", getUserDashboard);
 
 // api key routes
 router.post("/create-api-key", createApiKey);
@@ -44,8 +55,6 @@ router.post("/app/create-credentials", createAppCredentials);
 router.get("/app/credentials", listAppCredentials);
 router.get("/app/credentials/:id/decrypted", viewDecryptedAppCredential);
 router.delete("/app/:id", deleteAppCredentials);
-
-router.get("/dashboard", getUserDashboard);
 
 // email template routes
 router.get("/email-templates/my", getMyEmailTemplates);

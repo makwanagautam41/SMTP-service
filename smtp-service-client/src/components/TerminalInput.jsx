@@ -5,6 +5,7 @@ const TerminalInput = ({
   type,
   placeholder,
   onSubmit,
+  onChange,
   disabled,
   themeColors,
   id,
@@ -29,6 +30,7 @@ const TerminalInput = ({
         type={type}
         placeholder={placeholder}
         disabled={disabled}
+        onChange={(e) => onChange?.(e.target.value)}
         onKeyPress={(e) => {
           if (e.key === "Enter" && onSubmit) {
             onSubmit(e.target.value);

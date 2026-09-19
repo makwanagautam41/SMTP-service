@@ -1,5 +1,7 @@
 import express from "express";
 import EventEmitter from "events";
+import { internalSecretAuth } from "../middleware/internalSecretAuth.js";
+import { apiKeyAuth } from "../middleware/apiKeyAuth.js";
 
 const router = express.Router();
 const emailEmitter = new EventEmitter();
@@ -18,16 +20,31 @@ export function emitEmailEvent(id, payload) {
 }
 
 /**
- * GET /api/email/events/:id
  * Client subscribes to live updates for a specific email ID
+ * Supports both internal secret (for user server) and API key auth (for external users)
  */
-router.get("/events/:id", (req, res) => {
+const handleEvents = async (req, res) => {
+  const isInternal = internalSecretAuth(req);
+  
+  if (!isInternal) {
+    // Try API key auth for external users
+    try {
+      await new Promise((resolve, reject) => {
+        apiKeyAuth(req, res, (err) => (err ? reject(err) : resolve()));
+      });
+    } catch (err) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+  }
+
   const { id } = req.params;
 
   // Set up SSE headers
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
 
   // Initial ping to confirm connection
   res.write("event: ping\ndata: connected\n\n");
@@ -43,6 +60,15 @@ router.get("/events/:id", (req, res) => {
   req.on("close", () => {
     emailEmitter.removeListener(id, listener);
   });
+};
+
+router.get("/events/:id", handleEvents);
+router.options("/events/:id", (req, res) => {
+  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, x-api-key, Authorization");
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.status(204).end();
 });
 
 export default router;

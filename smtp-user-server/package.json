@@ -1,5 +1,5 @@
 {
-  "name": "smtp-user-server",
+  "name": "smtplite-user-server",
   "version": "1.0.0",
   "description": "",
   "main": "server.js",
@@ -20,6 +20,7 @@
     "crypto": "^1.0.1",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",
+    "express-rate-limit": "^8.7.0",
     "jsonwebtoken": "^9.0.2",
     "mailparser": "^3.7.5",
     "mongoose": "^8.19.2",

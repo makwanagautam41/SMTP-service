@@ -6,7 +6,6 @@ import Email from "../models/Email.js";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import jwt from "jsonwebtoken";
-import axios from "axios";
 import { encrypt, decrypt } from "../utils/encryption.util.js";
 import { sendEmail } from "../utils/email.util.js";
 import EmailTemplate from "../models/EmailTemplate.js";
@@ -46,7 +45,6 @@ const sendTokenResponse = (user, res) => {
 export const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
-    const type = "register";
     if (!name || !email || !password)
       return res.status(400).json({ message: "All fields are required" });
 
@@ -100,10 +98,9 @@ export const registerUser = async (req, res) => {
         to: email,
         subject: "Verify your email",
         html,
-        type,
-        from: process.env.SMTP_RELAY_USER || undefined,
+        from: process.env.SMTPLITE_RELAY_USER || undefined,
       },
-      { waitForStatus: true }
+      { waitForStatus: true },
     );
 
     const emailId = sendResp?.emailId || null;
@@ -230,6 +227,152 @@ export const logoutUser = (req, res) => {
   });
 
   res.status(200).json({ message: "Logged out successfully" });
+};
+
+// FORGOT PASSWORD
+export const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ message: "Email is required" });
+    }
+
+    const user = await User.findOne({ email }).catch(() => null);
+    if (!user) {
+      return res.status(200).json({
+        message: "If an account exists, a password reset email will be sent.",
+      });
+    }
+
+    const rawToken = crypto.randomBytes(32).toString("hex");
+    const hashedToken = crypto
+      .createHash("sha256")
+      .update(rawToken)
+      .digest("hex");
+
+    user.resetPasswordToken = hashedToken;
+    user.resetPasswordExpires = Date.now() + 3600000; // 1 hour
+    await user.save();
+
+    const resetUrl = `${(
+      process.env.CLIENT_URL || "http://localhost:5173"
+    ).replace(/\/+$/, "")}/reset-password/${rawToken}`;
+
+    const html = `
+      <div style="font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Helvetica,Arial,sans-serif;background:#f6f7fb;padding:24px;color:#111;">
+        <div style="max-width:640px;margin:auto;background:#ffffff;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.06);overflow:hidden">
+          <div style="background:#0f172a;color:#ffffff;padding:16px 20px;font-weight:700">Reset your password</div>
+          <div style="padding:22px 20px;line-height:1.6">
+            <h2 style="margin:0 0 8px;font-size:20px;color:#0f172a;">Hello ${user.name},</h2>
+            <p>You requested to reset your password. Click the button below to create a new password.</p>
+            <p style="margin:18px 0">
+              <a href="${resetUrl}" style="background:#4f46e5;color:#ffffff;text-decoration:none;padding:10px 16px;border-radius:8px;display:inline-block">Reset password</a>
+            </p>
+            <p>If the button does not work, copy and paste this link into your browser:</p>
+            <p style="word-break:break-all;color:#334155">${resetUrl}</p>
+            <p style="margin-top:20px;color:#475569;font-size:14px">This link expires in 1 hour. If you did not request this, please ignore this email.</p>
+          </div>
+          <div style="background:#f8fafc;color:#64748b;padding:12px 20px;font-size:12px;text-align:center">
+            This message was sent automatically. Please do not reply.
+          </div>
+        </div>
+      </div>
+    `;
+
+    const sendResp = await sendEmail(
+      {
+        to: email,
+        subject: "Reset your password",
+        html,
+        from: process.env.SMTPLITE_RELAY_USER || undefined,
+      },
+      { waitForStatus: true }
+    );
+
+    const emailId = sendResp?.emailId || null;
+    const status = sendResp?.status || "queued";
+
+    if (!emailId) {
+      return res
+        .status(200)
+        .json({ message: "If an account exists, a password reset email will be sent." });
+    }
+
+    if (status === "sent") {
+      return res.status(200).json({
+        message: "Password reset email sent successfully.",
+        emailId,
+      });
+    }
+
+    return res.status(200).json({
+      message: `Password reset email status: ${status}.`,
+      emailId,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
+// VERIFY RESET TOKEN
+export const verifyResetToken = async (req, res) => {
+  try {
+    const { token } = req.params;
+    if (!token) return res.status(400).json({ message: "Token is required" });
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    });
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    res.json({ message: "Token is valid", email: user.email });
+  } catch (err) {
+    console.error("Verify Reset Token Error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
+};
+
+// RESET PASSWORD
+export const resetPassword = async (req, res) => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    if (!token) return res.status(400).json({ message: "Token is required" });
+    if (!password || password.length < 6) {
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 6 characters" });
+    }
+
+    const hashedToken = crypto.createHash("sha256").update(token).digest("hex");
+
+    const user = await User.findOne({
+      resetPasswordToken: hashedToken,
+      resetPasswordExpires: { $gt: Date.now() },
+    }).select("+password");
+
+    if (!user) {
+      return res.status(400).json({ message: "Invalid or expired token" });
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+    user.password = hashedPassword;
+    user.resetPasswordToken = null;
+    user.resetPasswordExpires = null;
+    await user.save();
+
+    res.json({ message: "Password reset successfully" });
+  } catch (err) {
+    console.error("Reset Password Error:", err);
+    res.status(500).json({ message: "Server error: " + err.message });
+  }
 };
 
 // API KEY CONTROLLERS //
@@ -412,12 +555,12 @@ export const createAppCredentials = async (req, res) => {
           subject: `App credentials created for ${appName}`,
           html,
           type: "app-credentials-created",
-          from: process.env.SMTP_RELAY_USER || undefined,
+          from: process.env.SMTPLITE_RELAY_USER || undefined,
         },
         {
           waitForStatus: true,
           timeoutMs: Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000),
-        }
+        },
       );
     } catch (emailErr) {
       console.error("App credential creation email error:", emailErr);
@@ -508,12 +651,12 @@ export const deleteAppCredentials = async (req, res) => {
           subject: `App credentials deleted for ${appCredentialDetails.appName}`,
           html,
           type: "app-credentials-deleted",
-          from: process.env.SMTP_RELAY_USER || undefined,
+          from: process.env.SMTPLITE_RELAY_USER || undefined,
         },
         {
           waitForStatus: true,
           timeoutMs: Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000),
-        }
+        },
       );
     } catch (emailErr) {
       console.error("App credentials deletion email error:", emailErr);
@@ -535,7 +678,7 @@ export const viewDecryptedAppCredential = async (req, res) => {
     const { id } = req.params;
 
     const appCredential = await AppCredential.findById(id).select(
-      "+appPassword createdBy"
+      "+appPassword createdBy",
     );
 
     if (!appCredential) {
@@ -780,6 +923,61 @@ export const createEmailTemplate = async (req, res) => {
 
     return res.status(500).json({
       message: "Failed to create email template",
+      error: err.message,
+    });
+  }
+};
+
+export const getEmailTemplateByTemplateId = async (req, res) => {
+  try {
+    const { templateId } = req.body;
+
+    if (!templateId) {
+      return res.status(400).json({
+        message: "Template ID is required",
+      });
+    }
+
+    const template = await EmailTemplate.findOne({
+      templateId,
+      status: "active",
+    }).populate("owner", "_id name email profilePic");
+
+    if (!template) {
+      return res.status(404).json({
+        message: "Template not found",
+      });
+    }
+
+    // Extract variables like {{name}}, {{email}}, {{orderId}}
+    const variableRegex = /{{\s*([\w.]+)\s*}}/g;
+    const variablesSet = new Set();
+    let match;
+
+    while ((match = variableRegex.exec(template.html)) !== null) {
+      variablesSet.add(match[1]);
+    }
+
+    const variables = Array.from(variablesSet);
+
+    return res.status(200).json({
+      template: {
+        templateId: template.templateId,
+        subject: template.subject,
+        html: template.html,
+        type: template.type,
+        visibility: template.visibility,
+        status: template.status,
+        owner: template.owner,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt,
+      },
+      variables,
+      totalVariables: variables.length,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      message: "Failed to fetch template",
       error: err.message,
     });
   }

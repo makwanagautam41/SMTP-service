@@ -2,6 +2,7 @@ import express from "express";
 import Email from "../models/Email.js";
 import { info } from "../utils/logger.js";
 import { apiKeyAuth } from "../middleware/apiKeyAuth.js";
+import { internalSecretAuth } from "../middleware/internalSecretAuth.js";
 import { getWorker } from "../workers/worker.js";
 
 import EmailTemplate from "../models/EmailTemplate.js";
@@ -20,12 +21,25 @@ function wakeWorker() {
   } catch {}
 }
 
-router.post("/send", apiKeyAuth, async (req, res) => {
+router.post("/send", async (req, res) => {
   try {
-    let { to, subject, text, html, meta, type, templateId, variables } =
-      req.body;
+    const isInternal = internalSecretAuth(req);
 
-    console.log("Email send request body:", req.body);
+    // INTERNAL REQUEST FROM YOUR BACKEND
+    if (isInternal) {
+      req.fromEmail = process.env.SMTP_RELAY_USER;
+      req.fromUserId = null;
+      req.isSystem = true;
+    } else {
+      // EXTERNAL USER → must pass API key auth
+      await new Promise((resolve, reject) => {
+        apiKeyAuth(req, res, (err) => (err ? reject(err) : resolve()));
+      });
+
+      req.isSystem = false;
+    }
+
+    let { to, subject, text, html, meta, templateId, variables } = req.body;
 
     const from = req.fromEmail;
     const user = req.fromUserId;
@@ -55,9 +69,10 @@ router.post("/send", apiKeyAuth, async (req, res) => {
       text,
       html,
       meta,
-      type,
       user,
+      isSystem: req.isSystem, // IMPORTANT
     });
+
     info("Queued email id:", email._id);
 
     wakeWorker();
@@ -81,7 +96,7 @@ router.get("/status/:id", async (req, res) => {
 
 router.get("/status", async (req, res) => {
   try {
-    const emails = await Email.find({ from: req.body.email }).lean();
+    const emails = await Email.find({ from: req.query.email }).lean();
     if (!emails || emails.length === 0)
       return res
         .status(404)
@@ -101,7 +116,7 @@ router.get("/emails", async (req, res) => {
       .limit(limit)
       .lean()
       .select(
-        "_id from to subject status attempts lastError createdAt updatedAt"
+        "_id from to subject status attempts lastError createdAt updatedAt",
       );
     res.json({ success: true, emails });
   } catch (err) {

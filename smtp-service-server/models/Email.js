@@ -8,7 +8,7 @@ const EmailSchema = new mongoose.Schema(
     text: { type: String },
     html: { type: String },
     meta: { type: mongoose.Schema.Types.Mixed },
-    type: { type: String },
+    isSystem: { type: Boolean, default: false },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {
       type: String,
@@ -22,7 +22,7 @@ const EmailSchema = new mongoose.Schema(
     processingBy: { type: String, default: null, index: true },
     claimedAt: { type: Date, default: null, index: true },
   },
-  { timestamps: true, strict: true }
+  { timestamps: true, strict: true },
 );
 
 EmailSchema.index({ status: 1, nextAttemptAt: 1, createdAt: 1 });

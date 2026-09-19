@@ -1,25 +1,8 @@
 import ApiKey from "../models/ApiKey.js";
 
-const publicTypes = [
-  "register",
-  "forgot-password",
-  "resend-verification",
-  "app-credentials-created",
-  "app-credentials-deleted",
-];
-
 export const apiKeyAuth = async (req, res, next) => {
   try {
-    const { type } = req.body;
-
-    if (type && publicTypes.includes(type)) {
-      req.fromEmail = process.env.SMTP_RELAY_USER;
-      req.apiUser = null;
-      req.apiKey = null;
-      return next();
-    }
-
-    // Otherwise, require valid API key
+    // Require valid API key
     const apiKey = req.headers["x-api-key"];
     if (!apiKey) return res.status(401).json({ error: "API key missing" });
 

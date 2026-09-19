@@ -1,35 +1,31 @@
 import axios from "axios";
-const timeoutMs = Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000);
+const timeoutMs = Number(process.env.SMTPLITE_TIMEOUT_MS || 180000);
 
-const API_BASE = (
-  process.env.SMTP_LITE_API_URL || "https://smtp-service-server.vercel.app"
-).replace(/\/+$/, "");
-
+const API_BASE = process.env.SMTPLITE_API_URL || "http://localhost:5000";
 const SEND_URL = /\/api\/email\/send$/.test(API_BASE)
   ? API_BASE
   : `${API_BASE}/api/email/send`;
 
-const EVENTS_URL_BASE = (
-  process.env.SMTP_LITE_EVENTS_URL || `${API_BASE}/api/email/events`
-).replace(/\/+$/, "");
+const EVENTS_URL_BASE = `${API_BASE}/api/email/events`.replace(/\/+$/, "");
 
-const API_KEY = process.env.SMTP_LITE_API_KEY || "";
-const FROM = process.env.SMTP_RELAY_USER || "no-reply@localhost";
-
-const DEFAULT_TIMEOUT_MS = Number(process.env.SMTP_LITE_TIMEOUT_MS || 180000);
+const API_KEY = process.env.INTERNAL_SERVER_SECRET || "";
+const FROM = process.env.SMTPLITE_RELAY_USER || "no-reply@localhost";
 
 export async function sendEmail(
-  { to, subject, html, text = "", type = "generic", from = FROM },
-  { waitForStatus = false } = {}
+  { to, subject, html, text = "", from = FROM, type, meta, templateId, variables },
+  { waitForStatus = false } = {},
 ) {
   if (!to) throw new Error("Recipient 'to' is required");
 
-  const payload = { to, subject, html, text, type, from };
+  const payload = { to, subject, html, text, from, type, meta, templateId, variables };
 
   const resp = await axios.post(SEND_URL, payload, {
     headers: {
       "Content-Type": "application/json",
-      ...(API_KEY ? { "x-api-key": API_KEY } : {}),
+      ...(API_KEY && { "x-api-key": API_KEY }),
+      ...(process.env.INTERNAL_SERVER_SECRET && {
+        "x-internal-secret": process.env.INTERNAL_SERVER_SECRET,
+      }),
     },
     timeout: 30000,
   });
@@ -49,7 +45,7 @@ async function waitEmailStatus(emailId, timeoutMs) {
 
   try {
     const res = await fetch(`${EVENTS_URL_BASE}/${emailId}`, {
-      headers: API_KEY ? { "x-api-key": API_KEY } : {},
+      headers: process.env.INTERNAL_SERVER_SECRET ? { "x-internal-secret": process.env.INTERNAL_SERVER_SECRET } : {},
       signal: controller.signal,
     });
 

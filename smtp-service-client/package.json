@@ -1,5 +1,5 @@
 {
-  "name": "smtp-server-client",
+  "name": "smtplite-client",
   "private": true,
   "version": "0.0.0",
   "type": "module",
