@@ -50,3 +50,21 @@ export const getDashboardDataService = async (page, status) => {
     API.get(`/users/dashboard?page=${page}&limit=10&status=${status}`)
   );
 };
+
+export const forgotPassword = async (email) => {
+  return await handleRequest(
+    API.post("/users/forgot-password", { email })
+  );
+};
+
+export const resetPassword = async (token, password) => {
+  return await handleRequest(
+    API.post(`/users/reset-password/${token}`, { password })
+  );
+};
+
+export const verifyResetToken = async (token) => {
+  return await handleRequest(
+    API.get(`/users/verify-reset-token/${token}`)
+  );
+};

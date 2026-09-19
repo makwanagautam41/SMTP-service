@@ -17,6 +17,8 @@ import QuickStart from "./pages/QuickStart";
 import EmailTemplateBuilder from "./pages/EmailTemplateBuilder";
 import EmailTemplate from "./pages/EmailTemplate";
 import Documentations from "./pages/Documentations";
+import ForgotPassword from "./pages/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -36,6 +38,8 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/verify/:token" element={<VerifyAccount />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
           <Route path="/quick-start" element={<QuickStart />} />
           <Route path="/email-template" element={<EmailTemplate />} />
           <Route path="/docs" element={<Documentations />} />

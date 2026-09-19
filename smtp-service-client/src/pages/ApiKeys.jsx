@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useApiKeys } from "../context/ApiKeyContext";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Copy,
   Trash2,

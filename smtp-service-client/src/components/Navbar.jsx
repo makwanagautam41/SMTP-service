@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import {
   Menu,
   X,
@@ -416,8 +416,8 @@ const Navbar = () => {
                   </Link>
                 </motion.div>
                 <motion.button
-                  initial={{ opacity: 0, rotate: -90 }}
-                  animate={{ opacity: 1, rotate: 0 }}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ delay: 0.1, duration: 0.3 }}
                   onClick={toggleMenu}
                   style={{ color: legacy.foreground.color }}

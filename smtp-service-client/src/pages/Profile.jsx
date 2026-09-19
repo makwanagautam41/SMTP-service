@@ -1,7 +1,7 @@
 import React from "react";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { User, Mail, LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
 
 const Profile = () => {

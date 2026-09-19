@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { CheckCircle, Loader2 } from "lucide-react";
 
 const Verify = () => {

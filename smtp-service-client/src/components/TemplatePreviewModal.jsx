@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useMemo } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { X, Copy, Check, Braces } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import HtmlPreview from "./HtmlPreview";

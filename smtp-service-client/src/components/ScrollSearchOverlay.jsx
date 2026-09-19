@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence } from "motion/react";
 import { Search } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 import { useTheme } from "../context/ThemeContext";

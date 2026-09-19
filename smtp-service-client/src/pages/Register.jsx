@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import { useThemeStyles } from "../utils/useThemeStyles.js";
-import { motion } from "framer-motion";
+import { motion } from "motion/react";
 import { Rocket, AlertCircle, ArrowRight, CheckCircle2 } from "lucide-react";
 
 const Register = () => {
@@ -26,10 +26,43 @@ const Register = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
 
+  const validatePassword = (pwd) => {
+    if (pwd.length < 8) return "Password must be at least 8 characters";
+    if (!/[A-Z]/.test(pwd)) return "Password must contain at least one uppercase letter";
+    if (!/[a-z]/.test(pwd)) return "Password must contain at least one lowercase letter";
+    if (!/[0-9]/.test(pwd)) return "Password must contain at least one number";
+    if (!/[^A-Za-z0-9]/.test(pwd)) return "Password must contain at least one special character";
+    return null;
+  };
+
+  const validateEmail = (email) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    return null;
+  };
+
   const onSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setMessage("");
+
+    if (!name.trim()) {
+      setMessage("Full name is required");
+      return;
+    }
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setMessage(emailError);
+      return;
+    }
+
+    const pwdError = validatePassword(password);
+    if (pwdError) {
+      setMessage(pwdError);
+      return;
+    }
+
+    setLoading(true);
 
     const result = await handleRegister(name, email, password);
 
@@ -179,8 +212,32 @@ const Register = () => {
                 boxShadow: `0 8px 25px ${primary.color}40`,
               }}
             >
-              {loading ? "Creating Account..." : "Create Account"}
-              {!loading && <ArrowRight size={18} />}
+              {loading ? (
+                <>
+                  <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                      fill="none"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                    />
+                  </svg>
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Account
+                  <ArrowRight size={18} />
+                </>
+              )}
             </button>
 
             <p
