@@ -31,6 +31,14 @@ export const createEmailTemplateService = async (templateData) => {
   );
 };
 
+export const updateEmailTemplateService = async (id, templateData) => {
+  return await handleRequest(API.patch(`/users/email-templates/${id}`, templateData));
+};
+
+export const deleteEmailTemplateService = async (id) => {
+  return await handleRequest(API.delete(`/users/email-templates/${id}`));
+};
+
 // ── Template variable resolver (SMTP server — localhost:5000) ──────────────────
 /**
  * POST /api/users/get-variables  { templateId }

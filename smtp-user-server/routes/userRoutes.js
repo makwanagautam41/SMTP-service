@@ -17,6 +17,8 @@ import {
   getPublicEmailTemplates,
   getMyEmailTemplates,
   createEmailTemplate,
+  updateEmailTemplate,
+  deleteEmailTemplate,
   getEmailTemplateByTemplateId,
   forgotPassword,
   verifyResetToken,
@@ -59,5 +61,7 @@ router.delete("/app/:id", deleteAppCredentials);
 // email template routes
 router.get("/email-templates/my", getMyEmailTemplates);
 router.post("/create-email-template", protect, createEmailTemplate);
+router.patch("/email-templates/:id", protect, updateEmailTemplate);
+router.delete("/email-templates/:id", protect, deleteEmailTemplate);
 
 export default router;

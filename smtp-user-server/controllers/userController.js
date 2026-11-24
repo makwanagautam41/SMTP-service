@@ -929,6 +929,35 @@ export const createEmailTemplate = async (req, res) => {
   }
 };
 
+export const updateEmailTemplate = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { subject, html, type, visibility, status } = req.body;
+    if (!subject || !html) return res.status(400).json({ message: "Subject and HTML are required" });
+
+    const template = await EmailTemplate.findOneAndUpdate(
+      { _id: id, owner: req.user._id },
+      { subject, html, type, visibility, status },
+      { new: true, runValidators: true },
+    ).populate("owner", "_id name email profilePic");
+
+    if (!template) return res.status(404).json({ message: "Template not found" });
+    return res.json({ success: true, message: "Email template updated successfully", template });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to update email template", error: err.message });
+  }
+};
+
+export const deleteEmailTemplate = async (req, res) => {
+  try {
+    const template = await EmailTemplate.findOneAndDelete({ _id: req.params.id, owner: req.user._id });
+    if (!template) return res.status(404).json({ message: "Template not found" });
+    return res.json({ success: true, message: "Email template deleted successfully" });
+  } catch (err) {
+    return res.status(500).json({ message: "Failed to delete email template", error: err.message });
+  }
+};
+
 export const getEmailTemplateByTemplateId = async (req, res) => {
   try {
     const { templateId } = req.body;

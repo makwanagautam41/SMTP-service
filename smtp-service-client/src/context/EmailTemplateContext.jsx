@@ -3,6 +3,8 @@ import {
   fetchPublicTemplatesService,
   fetchMyTemplatesService,
   createEmailTemplateService,
+  updateEmailTemplateService,
+  deleteEmailTemplateService,
   getTemplateVariablesService,
 } from "../services/emailTemplateServices";
 
@@ -47,6 +49,18 @@ export const EmailTemplateProvider = ({ children }) => {
 
   const createEmailTemplate = async (data) => {
     return createEmailTemplateService(data);
+  };
+
+  const updateEmailTemplate = async (id, data) => {
+    const result = await updateEmailTemplateService(id, data);
+    if (result.success) await fetchMyTemplates();
+    return result;
+  };
+
+  const deleteEmailTemplate = async (id) => {
+    const result = await deleteEmailTemplateService(id);
+    if (result.success) setMyTemplates((prev) => prev.filter((template) => template._id !== id));
+    return result;
   };
 
   // ── Template variable resolver actions ─────────────────────────────────────
@@ -97,6 +111,8 @@ export const EmailTemplateProvider = ({ children }) => {
         fetchPublicTemplates,
         fetchMyTemplates,
         createEmailTemplate,
+        updateEmailTemplate,
+        deleteEmailTemplate,
         // Template variable resolver
         templateInfo,
         templateVarKeys,
