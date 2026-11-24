@@ -18,6 +18,9 @@ export const apiKeyAuth = async (req, res, next) => {
     req.fromEmail = key.user.email;
     req.fromUserId = key.user._id;
 
+    // Keep usage accounting lightweight and non-blocking for the send path.
+    ApiKey.updateOne({ _id: key._id }, { $inc: { usageCount: 1 }, $set: { lastUsedAt: new Date() } }).catch(() => {});
+
     next();
   } catch (err) {
     console.error("API Key Auth Error:", err);

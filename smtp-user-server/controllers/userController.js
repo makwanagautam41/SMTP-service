@@ -202,6 +202,7 @@ export const loginUser = async (req, res) => {
 // GET USER DETAILS
 export const getUserDetails = async (req, res) => {
   try {
+    res.set("Cache-Control", "private, max-age=30, stale-while-revalidate=60");
     if (!req.user || !req.user.id)
       return res.status(401).json({ message: "Not authenticated" });
 
@@ -419,6 +420,7 @@ export const createApiKey = async (req, res) => {
 // LIST API KEYS
 export const listApiKeys = async (req, res) => {
   try {
+    res.set("Cache-Control", "private, max-age=15, stale-while-revalidate=45");
     if (!req.user || !req.user._id)
       return res.status(401).json({ message: "Not authenticated" });
 
@@ -718,6 +720,7 @@ export const viewDecryptedAppCredential = async (req, res) => {
 
 export const getUserDashboard = async (req, res) => {
   try {
+    res.set("Cache-Control", "private, max-age=10, stale-while-revalidate=30");
     const userId = req.user.id;
 
     // Pagination + Filtering
@@ -740,25 +743,11 @@ export const getUserDashboard = async (req, res) => {
       },
     ]);
 
-    const totalEmails = await Email.countDocuments({ user: userId });
-    const sentEmails = await Email.countDocuments({
-      user: userId,
-      status: "sent",
-    });
-    const failedEmails = await Email.countDocuments({
-      user: userId,
-      status: "failed",
-    });
-    const pendingEmails = await Email.countDocuments({
-      user: userId,
-      status: "pending",
-    });
-
     const summary = {
-      totalEmails,
-      sentEmails,
-      failedEmails,
-      pendingEmails,
+      totalEmails: 0,
+      sentEmails: 0,
+      failedEmails: 0,
+      pendingEmails: 0,
     };
 
     stats.forEach((item) => {
@@ -775,13 +764,25 @@ export const getUserDashboard = async (req, res) => {
 
     summary.lastSent = lastSent || null;
 
+    const apiKeyUsage = await Email.aggregate([
+      { $match: { user: new mongoose.Types.ObjectId(userId) } },
+      { $match: { "meta.apiKeyId": { $exists: true } } },
+      { $group: { _id: "$meta.apiKeyId", name: { $first: "$meta.apiKeyName" }, count: { $sum: 1 }, lastUsedAt: { $max: "$createdAt" } } },
+      { $sort: { count: -1 } },
+    ]);
+    const keys = await ApiKey.find({ user: userId }).select("name active usageCount lastUsedAt createdAt").lean();
+    summary.apiKeyUsage = keys.map((key) => {
+      const usage = apiKeyUsage.find((item) => item._id?.toString() === key._id.toString());
+      return { ...key, usageCount: usage?.count || key.usageCount || 0, lastUsedAt: usage?.lastUsedAt || key.lastUsedAt };
+    });
+
     // Paginated emails
     const [recentEmails, totalFiltered] = await Promise.all([
       Email.find(filter)
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
-        .select("subject to status createdAt"),
+        .select("_id from to subject text html status attempts lastError nextAttemptAt createdAt updatedAt meta events"),
       Email.countDocuments(filter),
     ]);
 

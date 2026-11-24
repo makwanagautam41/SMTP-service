@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { useThemeStyles } from "../utils/useThemeStyles";
 
-const ApiKeys = () => {
+const ApiKeys = ({ embedded = false }) => {
   const { apiKeys, loading, createApiKey, deleteApiKey, toggleApiKey } =
     useApiKeys();
 
@@ -25,9 +25,7 @@ const ApiKeys = () => {
     primary,
     primaryForeground,
     foreground,
-    muted,
     mutedForeground,
-    input,
   } = useThemeStyles();
 
   const [name, setName] = useState("");
@@ -89,7 +87,7 @@ const ApiKeys = () => {
 
   return (
     <div
-      className="min-h-screen pt-8 px-4 transition-colors duration-300"
+      className={`${embedded ? "pt-0" : "min-h-screen pt-8"} px-4 transition-colors duration-300`}
       style={{ backgroundColor: background.color, color: foreground.color }}
     >
       <div className="max-w-5xl mx-auto">

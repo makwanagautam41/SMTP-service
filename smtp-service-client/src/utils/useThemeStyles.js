@@ -151,18 +151,18 @@ import { useTheme } from "../context/ThemeContext";
 // new theme design
 export const legacyLightTheme = {
   background: {
-    color: "#ffffff",
-    hsl: "hsl(0, 0%, 100%)",
+    color: "#f6f8fb",
+    hsl: "hsl(216, 33%, 97%)",
     title: "main page background",
   },
   foreground: {
-    color: "#171717",
-    hsl: "hsl(0, 0%, 9%)",
+    color: "#172033",
+    hsl: "hsl(220, 32%, 15%)",
     title: "primary text color",
   },
   primary: {
-    color: "#000000",
-    hsl: "hsl(0, 0%, 0%)",
+    color: "#3156d3",
+    hsl: "hsl(228, 63%, 51%)",
     title: "brand color, button or links",
   },
   primaryForeground: {
@@ -171,23 +171,23 @@ export const legacyLightTheme = {
     title: "text on primary backgrounds",
   },
   secondary: {
-    color: "#fafafa",
-    hsl: "hsl(0, 0%, 98%)",
+    color: "#eef2f8",
+    hsl: "hsl(216, 33%, 95%)",
     title: "secondary buttons, badges",
   },
   secondaryForeground: {
-    color: "#171717",
-    hsl: "hsl(0, 0%, 9%)",
+    color: "#24314a",
+    hsl: "hsl(220, 32%, 21%)",
     title: "text on secondary backgrounds",
   },
   muted: {
-    color: "#f5f5f5",
-    hsl: "hsl(0, 0%, 96%)",
+    color: "#e9eef6",
+    hsl: "hsl(216, 33%, 94%)",
     title: "code blocks, disabled states",
   },
   mutedForeground: {
-    color: "#737373",
-    hsl: "hsl(0, 0%, 45%)",
+    color: "#667085",
+    hsl: "hsl(220, 11%, 50%)",
     title: "subtle text, descriptions",
   },
   card: {
@@ -196,30 +196,30 @@ export const legacyLightTheme = {
     title: "card background",
   },
   cardForeground: {
-    color: "#171717",
-    hsl: "hsl(0, 0%, 9%)",
+    color: "#172033",
+    hsl: "hsl(220, 32%, 15%)",
     title: "text on card",
   },
   border: {
-    color: "#e5e5e5",
-    hsl: "hsl(0, 0%, 90%)",
+    color: "#dce3ee",
+    hsl: "hsl(216, 33%, 89%)",
     title: "borders, dividers",
   },
   input: {
-    color: "#e5e5e5",
-    hsl: "hsl(0, 0%, 90%)",
+    color: "#d5ddea",
+    hsl: "hsl(216, 33%, 88%)",
     title: "input field borders",
   },
   ring: {
-    color: "#000000",
-    hsl: "hsl(0, 0%, 0%)",
+    color: "#3156d3",
+    hsl: "hsl(228, 63%, 51%)",
     title: "focus rings, outlines",
   },
   hover: {
-    background: "#fafafa",
-    primary: "#262626",
-    secondary: "#f5f5f5",
-    foreground: "#000000",
+    background: "#eef3f9",
+    primary: "#2444b5",
+    secondary: "#e5ebf4",
+    foreground: "#172033",
   },
 };
 export const legacyDarkTheme = {

@@ -41,6 +41,11 @@ function createWorker(env) {
 
   async function claimNext() {
     const now = new Date();
+    // Recover messages left in the sending state by a crashed worker.
+    await Email.updateMany(
+      { status: "sending", claimedAt: { $lt: new Date(Date.now() - 10 * 60 * 1000) } },
+      { $set: { status: "pending", nextAttemptAt: now }, $unset: { processingBy: 1, claimedAt: 1 } },
+    );
     const claimed = await Email.findOneAndUpdate(
       { status: "pending", nextAttemptAt: { $lte: now } },
       { $set: { status: "sending", claimedAt: now, processingBy: WORKER_ID } },
@@ -52,6 +57,7 @@ function createWorker(env) {
   }
 
   async function processClaimed(claimed) {
+    await Email.updateOne({ _id: claimed._id }, { $push: { events: { status: "sending", at: new Date() } } });
     emitEmailEvent(claimed._id.toString(), "sending");
 
     try {
@@ -65,6 +71,7 @@ function createWorker(env) {
           {
             $set: { status: "failed", lastError: msg, nextAttemptAt: null },
             $inc: { attempts: 1 },
+            $push: { events: { status: "failed", at: new Date(), error: msg } },
             $unset: { processingBy: 1, claimedAt: 1 },
           },
         );
@@ -75,6 +82,7 @@ function createWorker(env) {
             {
               $set: { status: "failed", lastError: msg, nextAttemptAt: null },
               $inc: { attempts: 1 },
+            $push: { events: { status: "failed", at: new Date(), error: msg } },
               $unset: { processingBy: 1, claimedAt: 1 },
             },
           );
@@ -146,6 +154,8 @@ function createWorker(env) {
         subject: claimed.subject,
         text: claimed.text,
         html: claimed.html,
+        // Keep a slow provider from occupying a worker forever.
+        timeout: Number(env.SMTP_SEND_TIMEOUT_MS || 45000),
       });
 
       const r = await Email.updateOne(
@@ -153,6 +163,7 @@ function createWorker(env) {
         {
           $set: { status: "sent", lastError: "", nextAttemptAt: null },
           $inc: { attempts: 1 },
+          $push: { events: { status: "sent", at: new Date() } },
           $unset: { processingBy: 1, claimedAt: 1 },
         },
       );
@@ -163,6 +174,7 @@ function createWorker(env) {
           {
             $set: { status: "sent", lastError: "", nextAttemptAt: null },
             $inc: { attempts: 1 },
+            $push: { events: { status: "sent", at: new Date() } },
             $unset: { processingBy: 1, claimedAt: 1 },
           },
         );
@@ -186,6 +198,7 @@ function createWorker(env) {
             nextAttemptAt: new Date(Date.now() + delay),
           },
           $inc: { attempts: 1 },
+          $push: { events: { status: "failed", at: new Date(), error: msg } },
           $unset: { processingBy: 1, claimedAt: 1 },
         },
       );
@@ -200,6 +213,7 @@ function createWorker(env) {
               nextAttemptAt: new Date(Date.now() + delay),
             },
             $inc: { attempts: 1 },
+            $push: { events: { status: "failed", at: new Date(), error: msg } },
             $unset: { processingBy: 1, claimedAt: 1 },
           },
         );

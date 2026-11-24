@@ -43,6 +43,8 @@ app.use(`${API_PREFIX}/email`, emailEventsRoutes);
 
   // start worker
   getWorker();
+  const pollMs = Number(process.env.WORKER_POLL_MS || 5000);
+  setInterval(() => getWorker().tick().catch((err) => info(`Worker poll error: ${err.message}`)), pollMs);
 
   app.listen(PORT, () => {
     info(`Email API server listening on port ${PORT}`);

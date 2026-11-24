@@ -7,7 +7,6 @@ import {
   LogIn,
   UserPlus,
   LayoutDashboard,
-  KeyRound,
   Sun,
   Moon,
   User,
@@ -16,7 +15,6 @@ import {
 } from "lucide-react";
 import { MdOutlineDocumentScanner } from "react-icons/md";
 import { PiDevicesLight } from "react-icons/pi";
-import { TbLockAccess } from "react-icons/tb";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
@@ -26,7 +24,7 @@ import logo from "../../public/logo.png";
 const Navbar = () => {
   const { user, handleLogout } = useAuth();
   const { themeMode, setThemeMode, setIsSearchOpen } = useTheme();
-  const { theme, ...legacy } = useThemeStyles();
+  const { ...legacy } = useThemeStyles();
   const location = useLocation();
 
   const [isOpen, setIsOpen] = useState(false);
@@ -93,8 +91,6 @@ const Navbar = () => {
 
   const privateLinks = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { name: "API Keys", href: "/apikeys", icon: KeyRound },
-    { name: "APP Credentials", href: "/app-credentials", icon: TbLockAccess },
     { name: "Profile", href: "/profile", icon: User },
   ];
 

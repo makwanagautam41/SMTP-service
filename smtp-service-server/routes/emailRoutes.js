@@ -68,7 +68,12 @@ router.post("/send", async (req, res) => {
       subject,
       text,
       html,
-      meta,
+      meta: {
+        ...(meta || {}),
+        ...(req.apiKey ? { apiKeyId: req.apiKey._id.toString(), apiKeyName: req.apiKey.name || "Unnamed key" } : {}),
+        queuedAt: new Date().toISOString(),
+      },
+      events: [{ status: "queued", at: new Date() }],
       user,
       isSystem: req.isSystem, // IMPORTANT
     });
@@ -86,6 +91,7 @@ router.post("/send", async (req, res) => {
 
 router.get("/status/:id", async (req, res) => {
   try {
+    res.set("Cache-Control", "no-store");
     const e = await Email.findById(req.params.id).lean();
     if (!e) return res.status(404).json({ error: "not found" });
     res.json(e);

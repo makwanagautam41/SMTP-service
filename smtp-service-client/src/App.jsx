@@ -19,6 +19,7 @@ import EmailTemplate from "./pages/EmailTemplate";
 import Documentations from "./pages/Documentations";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import { InformationPage, SystemStatus } from "./pages/InformationPage";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -43,6 +44,9 @@ const App = () => {
           <Route path="/quick-start" element={<QuickStart />} />
           <Route path="/email-template" element={<EmailTemplate />} />
           <Route path="/docs" element={<Documentations />} />
+          <Route path="/privacy" element={<InformationPage type="/privacy" />} />
+          <Route path="/terms" element={<InformationPage type="/terms" />} />
+          <Route path="/status" element={<SystemStatus />} />
 
           <Route element={<ProtectedRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />

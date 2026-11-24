@@ -23,6 +23,7 @@ import {
   Filter,
   Download,
   RefreshCw,
+  X,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
@@ -34,6 +35,7 @@ const Dashboard = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
+  const [selectedEmail, setSelectedEmail] = useState(null);
 
   const { getDashboardData } = useAuth();
   const {
@@ -91,17 +93,14 @@ const Dashboard = () => {
   if (loading && !data) {
     return (
       <div
-        className="min-h-screen flex items-center justify-center"
+        className="min-h-screen p-4 md:p-8"
         style={{ backgroundColor: background.color }}
       >
-        <div className="text-center space-y-4">
-          <div
-            className="w-16 h-16 border-4 border-t-transparent rounded-full animate-spin mx-auto"
-            style={{
-              borderColor: `${primary.color} transparent ${primary.color} ${primary.color}`,
-            }}
-          />
-          <p style={{ color: mutedForeground.color }}>Loading dashboard...</p>
+        <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
+          <div className="h-10 w-72 rounded-lg" style={{ backgroundColor: secondary.color }} />
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">{[1,2,3,4].map((item) => <div key={item} className="h-32 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} />)}</div>
+          <div className="grid lg:grid-cols-2 gap-6"><div className="h-80 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} /><div className="h-80 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} /></div>
+          <div className="h-96 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} />
         </div>
       </div>
     );
@@ -279,6 +278,13 @@ const Dashboard = () => {
             );
           })}
         </div>
+
+        {summary?.apiKeyUsage?.length > 0 && (
+          <div className="rounded-xl p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}>
+            <div className="flex items-center justify-between mb-5"><div><h2 className="text-lg font-semibold" style={{ color: foreground.color }}>API key activity</h2><p className="text-sm mt-1" style={{ color: mutedForeground.color }}>Requests recorded for each integration.</p></div><span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: secondary.color, color: mutedForeground.color }}>Per key</span></div>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{summary.apiKeyUsage.map((key) => <div key={key._id} className="p-4 rounded-lg" style={{ backgroundColor: background.color, border: `1px solid ${border.color}` }}><div className="flex justify-between gap-3"><span className="font-medium truncate" style={{ color: foreground.color }}>{key.name || "Unnamed key"}</span><span className="font-bold" style={{ color: primary.color }}>{key.usageCount}</span></div><p className="text-xs mt-2" style={{ color: mutedForeground.color }}>{key.active ? "Active" : "Inactive"}{key.lastUsedAt ? ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}` : " · Not used yet"}</p></div>)}</div>
+          </div>
+        )}
 
         {/* Charts Row */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -551,7 +557,7 @@ const Dashboard = () => {
                   recentEmails.map((email, index) => (
                     <tr
                       key={email._id}
-                      className="border-t transition-colors"
+                      className="border-t transition-colors cursor-pointer"
                       style={{
                         borderColor: border.color,
                         backgroundColor:
@@ -565,6 +571,7 @@ const Dashboard = () => {
                         e.currentTarget.style.backgroundColor =
                           index % 2 === 0 ? "transparent" : hover.background;
                       }}
+                      onClick={() => setSelectedEmail(email)}
                     >
                       <td
                         className="px-6 py-4"
@@ -714,6 +721,17 @@ const Dashboard = () => {
           )}
         </div>
       </div>
+      {selectedEmail && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: "rgba(15, 23, 42, .48)" }} onClick={() => setSelectedEmail(null)}>
+          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} onClick={(event) => event.stopPropagation()}>
+            <div className="flex items-start justify-between gap-4 mb-6"><div><p className="text-xs font-bold uppercase tracking-[.16em] mb-2" style={{ color: primary.color }}>Delivery record</p><h2 className="text-xl font-bold" style={{ color: foreground.color }}>{selectedEmail.subject || "(No subject)"}</h2><p className="text-sm mt-1" style={{ color: mutedForeground.color }}>{selectedEmail._id}</p></div><button onClick={() => setSelectedEmail(null)} className="p-2 rounded-lg" style={{ backgroundColor: secondary.color, color: foreground.color }} aria-label="Close details"><X size={18} /></button></div>
+            <div className="grid sm:grid-cols-2 gap-3 mb-6">{[["From", selectedEmail.from], ["To", selectedEmail.to], ["Status", selectedEmail.status], ["Attempts", selectedEmail.attempts || 0], ["Queued", selectedEmail.createdAt ? new Date(selectedEmail.createdAt).toLocaleString() : "—"], ["Updated", selectedEmail.updatedAt ? new Date(selectedEmail.updatedAt).toLocaleString() : "—"]].map(([label, value]) => <div key={label} className="p-3 rounded-lg" style={{ backgroundColor: background.color, border: `1px solid ${border.color}` }}><p className="text-xs font-semibold uppercase tracking-wide" style={{ color: mutedForeground.color }}>{label}</p><p className="text-sm mt-1 break-words" style={{ color: foreground.color }}>{value || "—"}</p></div>)}</div>
+            <div className="mb-5"><h3 className="font-semibold mb-3" style={{ color: foreground.color }}>Delivery state history</h3><div className="space-y-2">{(selectedEmail.events?.length ? selectedEmail.events : [{ status: "queued", at: selectedEmail.createdAt }, { status: selectedEmail.status, at: selectedEmail.updatedAt }]).map((event, index) => <div key={`${event.status}-${event.at}-${index}`} className="flex items-center gap-3 text-sm"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: event.status === "failed" ? "#ef4444" : event.status === "sent" ? "#22c55e" : primary.color }} /><span className="font-medium capitalize" style={{ color: foreground.color }}>{event.status}</span><span style={{ color: mutedForeground.color }}>{event.at ? new Date(event.at).toLocaleString() : "—"}</span>{event.error && <span className="text-red-500 truncate">{event.error}</span>}</div>)}</div></div>
+            {selectedEmail.lastError && <div className="p-4 rounded-lg" style={{ backgroundColor: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.22)" }}><p className="text-xs font-bold uppercase tracking-wide text-red-500 mb-1">Latest delivery error</p><p className="text-sm text-red-600 break-words">{selectedEmail.lastError}</p></div>}
+            {selectedEmail.meta && <details className="mt-5"><summary className="cursor-pointer text-sm font-semibold" style={{ color: foreground.color }}>Request metadata</summary><pre className="mt-3 p-4 rounded-lg overflow-x-auto text-xs" style={{ backgroundColor: background.color, color: mutedForeground.color }}>{JSON.stringify(selectedEmail.meta, null, 2)}</pre></details>}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

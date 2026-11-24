@@ -16,14 +16,13 @@ import {
 import { useThemeStyles } from "../utils/useThemeStyles";
 import ConfirmDeleteModal from "../components/ConfirmDeleteModal";
 
-const AppCredentials = () => {
+const AppCredentials = ({ embedded = false }) => {
   const {
     appCredentials,
     loading,
     createAppCredentials,
     deleteAppCredentials,
     viewDecryptedPassword,
-    decryptedPassword,
   } = useAppCredentials();
 
   const {
@@ -33,9 +32,7 @@ const AppCredentials = () => {
     primary,
     primaryForeground,
     foreground,
-    muted,
     mutedForeground,
-    input,
   } = useThemeStyles();
 
   const [formData, setFormData] = useState({
@@ -96,7 +93,7 @@ const AppCredentials = () => {
 
   return (
     <div
-      className="min-h-screen pt-8 px-4 transition-colors duration-300"
+      className={`${embedded ? "pt-0" : "min-h-screen pt-8"} px-4 transition-colors duration-300`}
       style={{ backgroundColor: background.color, color: foreground.color }}
     >
       <div className="max-w-3xl mx-auto">

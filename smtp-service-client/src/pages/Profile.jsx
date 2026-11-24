@@ -1,8 +1,10 @@
 import React from "react";
+import { motion } from "motion/react";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
-import { motion } from "motion/react";
-import { User, Mail, LayoutDashboard, LogOut, ShieldCheck } from "lucide-react";
+import { User, Mail, LayoutDashboard, LogOut, ShieldCheck, KeyRound, LockKeyhole } from "lucide-react";
+import ApiKeys from "./ApiKeys";
+import AppCredentials from "./AppCredentials";
 
 const Profile = () => {
   const { user, loading, handleLogout } = useAuth();
@@ -14,7 +16,6 @@ const Profile = () => {
     primary,
     primaryForeground,
     mutedForeground,
-    muted,
   } = useThemeStyles();
 
   if (loading)
@@ -56,7 +57,7 @@ const Profile = () => {
       className="min-h-screen pt-8 px-4 transition-colors duration-300"
       style={{ backgroundColor: background.color, color: foreground.color }}
     >
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
@@ -216,6 +217,14 @@ const Profile = () => {
             </div>
           </div>
         </motion.div>
+
+        <div className="grid sm:grid-cols-2 gap-3 mb-8">
+          <a href="#api-keys" className="flex items-center gap-3 p-4 rounded-xl transition-colors" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><KeyRound size={19} style={{ color: primary.color }} /><span><strong className="block text-sm" style={{ color: foreground.color }}>API keys</strong><span className="text-xs" style={{ color: mutedForeground.color }}>Manage access tokens and usage</span></span></a>
+          <a href="#app-credentials" className="flex items-center gap-3 p-4 rounded-xl transition-colors" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><LockKeyhole size={19} style={{ color: primary.color }} /><span><strong className="block text-sm" style={{ color: foreground.color }}>App credentials</strong><span className="text-xs" style={{ color: mutedForeground.color }}>Manage SMTP sending identity</span></span></a>
+        </div>
+
+        <section id="api-keys" className="scroll-mt-24 mb-8"><ApiKeys embedded /></section>
+        <section id="app-credentials" className="scroll-mt-24 mb-8"><AppCredentials embedded /></section>
 
         {/* Action Buttons */}
         <motion.div

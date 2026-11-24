@@ -8,6 +8,7 @@ const EmailSchema = new mongoose.Schema(
     text: { type: String },
     html: { type: String },
     meta: { type: mongoose.Schema.Types.Mixed },
+    events: { type: [{ status: String, at: Date, error: String }], default: [] },
     isSystem: { type: Boolean, default: false },
     user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
     status: {

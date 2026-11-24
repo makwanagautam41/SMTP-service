@@ -6,6 +6,8 @@ const apiKeySchema = new mongoose.Schema(
     key: { type: String, required: true, unique: true },
     name: { type: String },
     active: { type: Boolean, default: false },
+    usageCount: { type: Number, default: 0 },
+    lastUsedAt: { type: Date, default: null },
   },
   { timestamps: true }
 );
