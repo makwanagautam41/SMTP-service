@@ -1,0 +1,17 @@
+{
+  "name": "SMTPLite",
+  "short_name": "SMTPLite",
+  "description": "Reliable email delivery tools for developers.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f6f8fb",
+  "theme_color": "#3156d3",
+  "icons": [
+    {
+      "src": "/logo.png",
+      "sizes": "500x500",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
