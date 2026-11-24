@@ -167,7 +167,7 @@ const Index = () => {
 
   return (
     <div
-      className="min-h-screen transition-colors duration-500 overflow-hidden"
+      className="landing-page min-h-screen transition-colors duration-500 overflow-hidden"
       style={{
         backgroundColor: background.color,
         color: foreground.color,
@@ -192,7 +192,7 @@ const Index = () => {
         />
       </div>
 
-      <section className="relative pt-8 pb-12 md:pt-12 md:pb-16 px-4 z-10">
+      <section className="landing-hero relative pt-8 pb-12 md:pt-12 md:pb-16 px-4 z-10">
         <div className="container mx-auto max-w-7xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-24 items-center">
             
@@ -205,14 +205,14 @@ const Index = () => {
             >
               <motion.div variants={fadeUp} className="self-start mb-8">
                 <div
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase shadow-sm border"
+                  className="landing-kicker inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold tracking-wide uppercase shadow-sm border"
                   style={{
                     backgroundColor: card.color,
                     color: foreground.color,
                     borderColor: border.color,
                   }}
                 >
-                  <span className="relative flex h-2 w-2 mr-1">
+                  <span className="relative flex h-2 w-2 mr-1"><i />
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
                   </span>
@@ -222,24 +222,20 @@ const Index = () => {
 
               <motion.h1 
                 variants={fadeUp}
-                className="text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1]"
+                className="landing-title text-5xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-8 leading-[1.1]"
               >
-                <span style={{ color: foreground.color }}>The email API for</span><br/>
+                <span style={{ color: foreground.color }}>Email that</span><br/>
                 <span 
                   className="bg-clip-text text-transparent bg-gradient-to-r"
                   style={{ backgroundImage: `linear-gradient(to right, ${primary.color}, ${primaryForeground.color})` }}
                 >
-                  <TextType
-                    text={["Modern Teams", "Fast Startups", "Global Brands"]}
-                    typingSpeed={60}
-                    pauseDuration={1500}
-                  />
+                  <TextType text={["just works.", "moves faster.", "scales with you."]} typingSpeed={60} pauseDuration={1500} />
                 </span>
               </motion.h1>
 
               <motion.p 
                 variants={fadeUp}
-                className="text-lg md:text-xl mb-10 leading-relaxed max-w-lg font-medium"
+                className="landing-subtitle text-lg md:text-xl mb-10 leading-relaxed max-w-lg font-medium"
                 style={{ color: mutedForeground.color }}
               >
                 Reach your users reliably with an elegant API suite built for scale. No complex SMTP overhead—just powerful developer tools.
@@ -284,7 +280,7 @@ const Index = () => {
 
             {/* Hero Right Content - Terminal Faux Windows */}
             <motion.div 
-              className="relative w-full"
+              className="landing-code relative w-full"
               initial={{ opacity: 0, scale: 0.95, rotateY: 5 }}
               animate={{ opacity: 1, scale: 1, rotateY: 0 }}
               transition={{ duration: 0.8, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
@@ -359,7 +355,7 @@ const Index = () => {
       </section>
 
       {/* Features Grid Segment */}
-      <section className="py-16 md:py-24 relative z-10">
+      <section className="landing-section py-16 md:py-24 relative z-10">
         <div className="container mx-auto max-w-7xl px-4 md:px-6">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
@@ -376,7 +372,7 @@ const Index = () => {
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+          <div className="landing-feature-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
             {features.map((feature, index) => (
               <motion.div
                 key={index}
@@ -425,7 +421,7 @@ const Index = () => {
       </section>
 
       {/* Use Cases Grid Segment */}
-      <section className="py-16 md:py-24 relative z-10 border-t" style={{ backgroundColor: `${secondary.color}20`, borderColor: border.color }}>
+      <section className="landing-section py-16 md:py-24 relative z-10 border-t" style={{ backgroundColor: `${secondary.color}20`, borderColor: border.color }}>
         <div className="container mx-auto max-w-7xl px-4 md:px-6">
           <motion.div 
             initial={{ opacity: 0, y: 30 }}

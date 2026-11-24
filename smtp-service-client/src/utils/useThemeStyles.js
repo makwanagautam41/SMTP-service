@@ -151,18 +151,18 @@ import { useTheme } from "../context/ThemeContext";
 // new theme design
 export const legacyLightTheme = {
   background: {
-    color: "#f6f8fb",
-    hsl: "hsl(216, 33%, 97%)",
+    color: "#ffffff",
+    hsl: "hsl(0, 0%, 100%)",
     title: "main page background",
   },
   foreground: {
-    color: "#172033",
-    hsl: "hsl(220, 32%, 15%)",
+    color: "#0a0a0a",
+    hsl: "hsl(0, 0%, 4%)",
     title: "primary text color",
   },
   primary: {
-    color: "#3156d3",
-    hsl: "hsl(228, 63%, 51%)",
+    color: "#000000",
+    hsl: "hsl(0, 0%, 0%)",
     title: "brand color, button or links",
   },
   primaryForeground: {
@@ -171,23 +171,23 @@ export const legacyLightTheme = {
     title: "text on primary backgrounds",
   },
   secondary: {
-    color: "#eef2f8",
-    hsl: "hsl(216, 33%, 95%)",
+    color: "#fafafa",
+    hsl: "hsl(0, 0%, 98%)",
     title: "secondary buttons, badges",
   },
   secondaryForeground: {
-    color: "#24314a",
-    hsl: "hsl(220, 32%, 21%)",
+    color: "#171717",
+    hsl: "hsl(0, 0%, 9%)",
     title: "text on secondary backgrounds",
   },
   muted: {
-    color: "#e9eef6",
-    hsl: "hsl(216, 33%, 94%)",
+    color: "#fafafa",
+    hsl: "hsl(0, 0%, 98%)",
     title: "code blocks, disabled states",
   },
   mutedForeground: {
-    color: "#667085",
-    hsl: "hsl(220, 11%, 50%)",
+    color: "#666666",
+    hsl: "hsl(0, 0%, 40%)",
     title: "subtle text, descriptions",
   },
   card: {
@@ -196,30 +196,30 @@ export const legacyLightTheme = {
     title: "card background",
   },
   cardForeground: {
-    color: "#172033",
-    hsl: "hsl(220, 32%, 15%)",
+    color: "#0a0a0a",
+    hsl: "hsl(0, 0%, 4%)",
     title: "text on card",
   },
   border: {
-    color: "#dce3ee",
-    hsl: "hsl(216, 33%, 89%)",
+    color: "#eaeaea",
+    hsl: "hsl(0, 0%, 92%)",
     title: "borders, dividers",
   },
   input: {
-    color: "#d5ddea",
-    hsl: "hsl(216, 33%, 88%)",
+    color: "#eaeaea",
+    hsl: "hsl(0, 0%, 92%)",
     title: "input field borders",
   },
   ring: {
-    color: "#3156d3",
-    hsl: "hsl(228, 63%, 51%)",
+    color: "#888888",
+    hsl: "hsl(0, 0%, 53%)",
     title: "focus rings, outlines",
   },
   hover: {
-    background: "#eef3f9",
-    primary: "#2444b5",
-    secondary: "#e5ebf4",
-    foreground: "#172033",
+    background: "#f5f5f5",
+    primary: "#171717",
+    secondary: "#f0f0f0",
+    foreground: "#0a0a0a",
   },
 };
 export const legacyDarkTheme = {
@@ -244,8 +244,8 @@ export const legacyDarkTheme = {
     title: "text on primary backgrounds",
   },
   secondary: {
-    color: "#1a1a1a",
-    hsl: "hsl(0, 0%, 10%)",
+    color: "#171717",
+    hsl: "hsl(0, 0%, 9%)",
     title: "secondary buttons, badges",
   },
   secondaryForeground: {
@@ -289,7 +289,7 @@ export const legacyDarkTheme = {
     title: "focus rings, outlines",
   },
   hover: {
-    background: "#1a1a1a",
+    background: "#171717",
     primary: "#e6e6e6",
     secondary: "#262626",
     foreground: "#ffffff",

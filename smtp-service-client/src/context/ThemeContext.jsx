@@ -54,9 +54,7 @@ export const ThemeProvider = ({ children }) => {
   }, [themeMode]);
 
   const toggleTheme = () => {
-    setThemeMode((prev) =>
-      prev === "light" ? "dark" : prev === "dark" ? "system" : "light"
-    );
+    setThemeMode((prev) => (prev === "dark" ? "light" : "dark"));
   };
 
   const [isSearchOpen, setIsSearchOpen] = useState(false);

@@ -20,6 +20,7 @@ import Documentations from "./pages/Documentations";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
 import { InformationPage, SystemStatus } from "./pages/InformationPage";
+import { Toaster } from "@/components/ui/sonner";
 
 const App = () => {
   const { background, foreground } = useThemeStyles();
@@ -32,6 +33,7 @@ const App = () => {
       }}
     >
       <Navbar />
+      <Toaster position="top-right" richColors />
 
       <main className="flex-grow pt-16">
         <Routes>

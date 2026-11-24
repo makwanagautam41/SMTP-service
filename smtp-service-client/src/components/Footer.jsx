@@ -1,64 +1,15 @@
 import React from "react";
-import { useThemeStyles } from "../utils/useThemeStyles.js";
 import { Link } from "react-router-dom";
+import { ArrowUpRight, MoveUpRight } from "lucide-react";
 
-const Footer = () => {
-  const { border, mutedForeground, primary, card } = useThemeStyles();
-
-  const links = [
-    { to: "/privacy", text: "Privacy Policy" },
-    { to: "/terms", text: "Terms of Service" },
-    { to: "/status", text: "System Status" },
-  ];
-
-  return (
-    <footer
-      className="w-full mt-auto py-6 text-center text-sm transition-colors duration-300 border-t"
-      style={{
-        backgroundColor: card.color,
-        color: mutedForeground.color,
-        borderColor: border.color,
-      }}
-    >
-      <div className="max-w-4xl mx-auto px-4">
-        <p className="mb-1">
-          © {new Date().getFullYear()}{" "}
-          <span className="font-semibold">SMTPLite</span> — Built with{" "}
-          <span className="text-red-500 animate-pulse">❤️</span> for developers
-        </p>
-
-        <p className="text-xs">
-          Need help? Contact{" "}
-          <a
-            href="mailto:smtplitee@gmail.com"
-            className="font-medium hover:underline"
-            style={{ color: primary.color }}
-          >
-            smtplitee@gmail.com
-          </a>
-        </p>
-
-        <div className="mt-4 flex flex-wrap justify-center gap-4 text-xs">
-          {links.map(({ to, text }) => (
-            <Link
-              key={to}
-              to={to}
-              className="transition-colors duration-200 hover:underline"
-              style={{
-                color: mutedForeground.color,
-              }}
-              onMouseEnter={(e) => (e.target.style.color = primary.color)}
-              onMouseLeave={(e) =>
-                (e.target.style.color = mutedForeground.color)
-              }
-            >
-              {text}
-            </Link>
-          ))}
-        </div>
-      </div>
-    </footer>
-  );
-};
+const Footer = () => (
+  <footer className="site-footer">
+    <div className="shell footer-top">
+      <div><Link to="/" className="brand-lockup"><span className="brand-mark">S<span>.</span></span><span className="brand-name">smtp<span>lite</span></span></Link><p>Send what matters.<br />We’ll handle the rest.</p></div>
+      <div className="footer-links"><div><span className="eyebrow">EXPLORE</span><Link to="/docs">Documentation <ArrowUpRight /></Link><Link to="/quick-start">Quick start <ArrowUpRight /></Link><Link to="/email-template">Templates <ArrowUpRight /></Link></div><div><span className="eyebrow">COMPANY</span><Link to="/privacy">Privacy <ArrowUpRight /></Link><Link to="/terms">Terms <ArrowUpRight /></Link><Link to="/status">System status <ArrowUpRight /></Link></div><div><span className="eyebrow">SAY HELLO</span><a href="mailto:smtplitee@gmail.com">smtplitee@gmail.com <MoveUpRight /></a></div></div>
+    </div>
+    <div className="shell footer-bottom"><span>© {new Date().getFullYear()} SMTPLite</span><span>Built for the messages that move things forward <span className="footer-spark">✳</span></span><Link to="/status">All systems operational</Link></div>
+  </footer>
+);
 
 export default Footer;
