@@ -98,7 +98,7 @@ const AppCredentials = ({ embedded = false }) => {
     >
       <div className="max-w-3xl mx-auto">
         {/* Header */}
-        <motion.div
+        {!embedded && <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -118,7 +118,7 @@ const AppCredentials = ({ embedded = false }) => {
           <p className="text-sm font-medium ml-1" style={{ color: mutedForeground.color }}>
             Securely store and manage your SMTP application credentials.
           </p>
-        </motion.div>
+        </motion.div>}
 
         {/* CREATE FORM — only when no credentials exist */}
         <AnimatePresence>
