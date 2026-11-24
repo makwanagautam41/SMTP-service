@@ -92,7 +92,7 @@ const ApiKeys = ({ embedded = false }) => {
     >
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        {!embedded && <motion.div
+        <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
@@ -112,7 +112,7 @@ const ApiKeys = ({ embedded = false }) => {
           <p className="text-sm font-medium ml-1" style={{ color: mutedForeground.color }}>
             Create and manage keys to authenticate against the Resend API.
           </p>
-        </motion.div>}
+        </motion.div>
 
         {/* Alerts */}
         <AnimatePresence>
