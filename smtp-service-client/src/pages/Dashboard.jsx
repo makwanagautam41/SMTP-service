@@ -1,32 +1,33 @@
 import { useEffect, useState } from "react";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import {
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  Tooltip,
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-  } from "recharts";
-import {
-  Mail,
-  CheckCircle2,
-  XCircle,
-  Clock,
-  TrendingUp,
+  Activity,
+  AlertCircle,
+  ArrowUpRight,
   Calendar,
+  CheckCircle2,
   ChevronLeft,
   ChevronRight,
-  Filter,
+  Clock3,
   Download,
+  Filter,
+  Mail,
   RefreshCw,
+  Send,
   X,
+  XCircle,
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { useThemeStyles } from "../utils/useThemeStyles";
+
+const DashboardSkeleton = ({ colors }) => (
+  <div className="max-w-7xl mx-auto space-y-6 animate-pulse" aria-label="Loading dashboard">
+    <div className="h-28 rounded-2xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }} />
+    <div className="grid grid-cols-2 xl:grid-cols-4 gap-3">{[1, 2, 3, 4].map((item) => <div key={item} className="h-32 rounded-2xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }} />)}</div>
+    <div className="grid xl:grid-cols-5 gap-6"><div className="h-80 xl:col-span-3 rounded-2xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }} /><div className="h-80 xl:col-span-2 rounded-2xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }} /></div>
+    <div className="h-96 rounded-2xl" style={{ backgroundColor: colors.card, border: `1px solid ${colors.border}` }} />
+  </div>
+);
 
 const Dashboard = () => {
   const [data, setData] = useState(null);
@@ -36,703 +37,61 @@ const Dashboard = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState(null);
   const [selectedEmail, setSelectedEmail] = useState(null);
-
   const { getDashboardData } = useAuth();
-  const {
-    background,
-    foreground,
-    primary,
-    primaryForeground,
-    secondary,
-    secondaryForeground,
-    mutedForeground,
-    card,
-    border,
-    hover,
-    theme,
-  } = useThemeStyles();
+  const { background, foreground, primary, primaryForeground, secondary, secondaryForeground, mutedForeground, card, border, hover, theme } = useThemeStyles();
 
   const fetchData = async (showRefreshIndicator = false) => {
+    showRefreshIndicator ? setRefreshing(true) : setLoading(true);
     try {
-      if (showRefreshIndicator) {
-        setRefreshing(true);
-      } else {
-        setLoading(true);
-      }
-
-      const res = await getDashboardData(currentPage, statusFilter);
-      if (res) {
-        setData(res);
-        setLastUpdated(new Date());
-      }
-    } catch (err) {
-      console.error("Dashboard Fetch Error:", err);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+      const result = await getDashboardData(currentPage, statusFilter);
+      if (result) { setData(result); setLastUpdated(new Date()); }
+    } catch (error) { console.error("Dashboard Fetch Error:", error); }
+    finally { setLoading(false); setRefreshing(false); }
   };
 
-  const handleRefresh = () => {
-    fetchData(true);
-  };
+  useEffect(() => { fetchData(); }, [currentPage, statusFilter]);
 
-  const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-  };
+  if (loading && !data) return <main className="min-h-screen px-4 py-8 md:px-6" style={{ backgroundColor: background.color }}><DashboardSkeleton colors={{ card: card.color, border: border.color }} /></main>;
+  if (!data) return <main className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: background.color }}><div className="rounded-2xl p-8 text-center" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><AlertCircle className="mx-auto mb-3 text-red-500" size={40} /><h1 className="font-semibold" style={{ color: foreground.color }}>Dashboard unavailable</h1><p className="text-sm mt-2" style={{ color: mutedForeground.color }}>We could not load your delivery data.</p><button onClick={() => fetchData(true)} className="mt-5 px-4 py-2 rounded-lg text-sm font-semibold" style={{ backgroundColor: primary.color, color: primaryForeground.color }}>Try again</button></div></main>;
 
-  const handleStatusFilterChange = (newStatus) => {
-    setStatusFilter(newStatus);
-    setCurrentPage(1);
-  };
-
-  useEffect(() => {
-    fetchData();
-  }, [currentPage, statusFilter]);
-
-  if (loading && !data) {
-    return (
-      <div
-        className="min-h-screen p-4 md:p-8"
-        style={{ backgroundColor: background.color }}
-      >
-        <div className="max-w-7xl mx-auto space-y-6 animate-pulse">
-          <div className="h-10 w-72 rounded-lg" style={{ backgroundColor: secondary.color }} />
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">{[1,2,3,4].map((item) => <div key={item} className="h-32 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} />)}</div>
-          <div className="grid lg:grid-cols-2 gap-6"><div className="h-80 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} /><div className="h-80 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} /></div>
-          <div className="h-96 rounded-xl" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} />
-        </div>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div
-        className="min-h-screen flex items-center justify-center"
-        style={{ backgroundColor: background.color }}
-      >
-        <div
-          className="p-8 rounded-lg text-center"
-          style={{
-            backgroundColor: card.color,
-            border: `1px solid ${border.color}`,
-          }}
-        >
-          <XCircle size={48} className="mx-auto mb-4 text-red-500" />
-          <p
-            className="text-lg font-semibold mb-2"
-            style={{ color: foreground.color }}
-          >
-            Failed to load dashboard data
-          </p>
-          <button
-            onClick={handleRefresh}
-            className="mt-4 px-6 py-2 rounded-lg font-medium transition-all"
-            style={{
-              backgroundColor: primary.color,
-              color: primaryForeground.color,
-            }}
-          >
-            Try Again
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const { summary, recentEmails, pagination } = data;
-
-  const pieData = [
-    { name: "Sent", value: summary?.sentEmails || 0, color: "#22c55e" },
-    { name: "Failed", value: summary?.failedEmails || 0, color: "#ef4444" },
-    { name: "Pending", value: summary?.pendingEmails || 0, color: "#f59e0b" },
+  const { summary = {}, recentEmails = [], pagination } = data;
+  const stats = [
+    { label: "Total sent", value: summary.totalEmails || 0, icon: Send, tone: primary.color },
+    { label: "Delivered", value: summary.sentEmails || 0, icon: CheckCircle2, tone: "#16a34a" },
+    { label: "Needs attention", value: summary.failedEmails || 0, icon: XCircle, tone: "#dc2626" },
+    { label: "In queue", value: summary.pendingEmails || 0, icon: Clock3, tone: "#d97706" },
   ];
+  const chartData = [{ name: "Delivered", value: summary.sentEmails || 0 }, { name: "Failed", value: summary.failedEmails || 0 }, { name: "Queued", value: summary.pendingEmails || 0 }];
+  const pieData = [{ name: "Delivered", value: summary.sentEmails || 0, color: "#16a34a" }, { name: "Failed", value: summary.failedEmails || 0, color: "#dc2626" }, { name: "Queued", value: summary.pendingEmails || 0, color: "#d97706" }];
 
-  // Stats cards configuration
-  const statsCards = [
-    {
-      label: "Total Emails",
-      value: summary?.totalEmails || 0,
-      icon: Mail,
-      color: primary.color,
-      bgColor: theme === "light" ? "#f5f5f5" : "#1a1a1a",
-    },
-    {
-      label: "Sent Successfully",
-      value: summary?.sentEmails || 0,
-      icon: CheckCircle2,
-      color: "#22c55e",
-      bgColor: theme === "light" ? "#dcfce7" : "#14532d",
-    },
-    {
-      label: "Failed",
-      value: summary?.failedEmails || 0,
-      icon: XCircle,
-      color: "#ef4444",
-      bgColor: theme === "light" ? "#fee2e2" : "#7f1d1d",
-    },
-    {
-      label: "Pending",
-      value: summary?.pendingEmails || 0,
-      icon: Clock,
-      color: "#f59e0b",
-      bgColor: theme === "light" ? "#fef3c7" : "#78350f",
-    },
-  ];
+  const statusStyle = (status) => status === "sent" ? { backgroundColor: "rgba(22,163,74,.12)", color: "#15803d", icon: CheckCircle2 } : status === "failed" ? { backgroundColor: "rgba(220,38,38,.1)", color: "#b91c1c", icon: XCircle } : { backgroundColor: "rgba(217,119,6,.12)", color: "#b45309", icon: Clock3 };
 
   return (
-    <div
-      className="p-4 md:p-6 lg:p-8 transition-colors"
-      style={{ backgroundColor: background.color }}
-    >
+    <main className="min-h-screen px-4 py-6 md:px-6 md:py-8" style={{ backgroundColor: background.color, color: foreground.color }}>
       <div className="max-w-7xl mx-auto space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1
-              className="text-2xl md:text-3xl font-bold mb-2"
-              style={{ color: foreground.color }}
-            >
-              Dashboard Overview
-            </h1>
-            <p
-              style={{ color: mutedForeground.color }}
-              className="text-sm md:text-base"
-            >
-              Monitor your email activity and performance
-            </p>
-          </div>
+        <header className="rounded-2xl p-5 md:p-7 flex flex-col md:flex-row md:items-end md:justify-between gap-5" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}>
+          <div><div className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em]" style={{ color: primary.color }}><Activity size={15} />Delivery command center</div><h1 className="text-2xl md:text-3xl font-bold tracking-tight mt-3" style={{ color: foreground.color }}>Email performance, at a glance.</h1><p className="text-sm mt-2 max-w-xl" style={{ color: mutedForeground.color }}>A clear view of your queue, delivery health, and the latest messages moving through SMTPLite.</p></div>
+          <div className="flex items-center gap-2"><div className="hidden sm:block text-right mr-2"><p className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: mutedForeground.color }}>Last sync</p><p className="text-sm font-medium mt-1" style={{ color: foreground.color }}>{lastUpdated ? lastUpdated.toLocaleTimeString() : "—"}</p></div><button onClick={() => fetchData(true)} disabled={refreshing} className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-semibold disabled:opacity-60" style={{ backgroundColor: primary.color, color: primaryForeground.color }}><RefreshCw size={16} className={refreshing ? "animate-spin" : ""} />{refreshing ? "Refreshing" : "Refresh"}</button></div>
+        </header>
 
-          <div className="flex items-center gap-3">
-            {lastUpdated && (
-              <div
-                className="text-sm px-4 py-3 rounded-lg"
-                style={{
-                  backgroundColor: secondary.color,
-                  color: mutedForeground.color,
-                  border: `1px solid ${border.color}`,
-                }}
-              >
-                Last updated: {lastUpdated.toLocaleTimeString()}
-              </div>
-            )}
+        <section className="grid grid-cols-2 xl:grid-cols-4 gap-3" aria-label="Email summary">
+          {stats.map(({ label, value, icon: Icon, tone }) => <div key={label} className="rounded-2xl p-4 md:p-5" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><div className="flex items-center justify-between"><span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${tone}18`, color: tone }}><Icon size={18} /></span><ArrowUpRight size={15} style={{ color: mutedForeground.color }} /></div><p className="text-xs font-semibold mt-5" style={{ color: mutedForeground.color }}>{label}</p><p className="text-2xl md:text-3xl font-bold mt-1" style={{ color: foreground.color }}>{value.toLocaleString()}</p></div>)}
+        </section>
 
-            <button
-              onClick={handleRefresh}
-              disabled={refreshing}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all disabled:opacity-50"
-              style={{
-                backgroundColor: primary.color,
-                color: primaryForeground.color,
-              }}
-            >
-              <RefreshCw
-                size={18}
-                className={refreshing ? "animate-spin" : ""}
-              />
-              {refreshing ? "Refreshing..." : "Refresh"}
-            </button>
-          </div>
-        </div>
+        <section className="grid xl:grid-cols-5 gap-6">
+          <div className="xl:col-span-3 rounded-2xl p-5 md:p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><div className="flex items-center justify-between mb-5"><div><h2 className="font-bold" style={{ color: foreground.color }}>Delivery mix</h2><p className="text-xs mt-1" style={{ color: mutedForeground.color }}>Current message outcomes</p></div><span className="text-xs px-2.5 py-1 rounded-full" style={{ backgroundColor: secondary.color, color: mutedForeground.color }}>Live view</span></div><ResponsiveContainer width="100%" height={245}><BarChart data={chartData} barCategoryGap="28%"><XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: mutedForeground.color, fontSize: 12 }} /><YAxis axisLine={false} tickLine={false} allowDecimals={false} tick={{ fill: mutedForeground.color, fontSize: 12 }} /><Tooltip contentStyle={{ backgroundColor: card.color, border: `1px solid ${border.color}`, borderRadius: 12, color: foreground.color }} cursor={{ fill: hover.background }} /><Bar dataKey="value" fill={primary.color} radius={[7, 7, 2, 2]} /></BarChart></ResponsiveContainer></div>
+          <div className="xl:col-span-2 rounded-2xl p-5 md:p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><h2 className="font-bold" style={{ color: foreground.color }}>Queue health</h2><p className="text-xs mt-1" style={{ color: mutedForeground.color }}>How your messages are distributed</p><div className="h-[245px] relative"><ResponsiveContainer width="100%" height="100%"><PieChart><Pie data={pieData} dataKey="value" nameKey="name" innerRadius={62} outerRadius={86} paddingAngle={3}>{pieData.map((entry) => <Cell key={entry.name} fill={entry.color} />)}</Pie><Tooltip contentStyle={{ backgroundColor: card.color, border: `1px solid ${border.color}`, borderRadius: 12 }} /><Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{ fontSize: 11, color: foreground.color }} /></PieChart></ResponsiveContainer><div className="absolute inset-0 flex items-center justify-center pointer-events-none pb-5"><div className="text-center"><p className="text-2xl font-bold" style={{ color: foreground.color }}>{summary.totalEmails || 0}</p><p className="text-[10px] uppercase tracking-wide" style={{ color: mutedForeground.color }}>messages</p></div></div></div></div>
+        </section>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-          {statsCards.map((stat) => {
-            const Icon = stat.icon;
-            return (
-              <div
-                key={stat.label}
-                className="rounded-xl p-6 transition-all duration-300 hover:scale-105 hover:shadow-lg"
-                style={{
-                  backgroundColor: card.color,
-                  border: `1px solid ${border.color}`,
-                }}
-              >
-                <div className="flex items-start justify-between mb-4">
-                  <div
-                    className="p-3 rounded-lg"
-                    style={{ backgroundColor: stat.bgColor }}
-                  >
-                    <Icon size={24} style={{ color: stat.color }} />
-                  </div>
-                  <TrendingUp
-                    size={20}
-                    style={{ color: mutedForeground.color }}
-                  />
-                </div>
-                <div>
-                  <p
-                    className="text-sm font-medium mb-1"
-                    style={{ color: mutedForeground.color }}
-                  >
-                    {stat.label}
-                  </p>
-                  <p
-                    className="text-3xl font-bold"
-                    style={{ color: foreground.color }}
-                  >
-                    {stat.value}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+        {summary.lastSent && <section className="rounded-2xl p-5 md:p-6 flex flex-col md:flex-row md:items-center gap-5" style={{ backgroundColor: primary.color, color: primaryForeground.color }}><div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(255,255,255,.16)" }}><Mail size={21} /></div><div className="flex-1 min-w-0"><p className="text-xs uppercase tracking-[.16em] opacity-70 font-semibold">Latest delivery</p><p className="font-semibold mt-1 truncate">{summary.lastSent.subject || "Untitled message"}</p><p className="text-sm opacity-75 mt-1 truncate">{summary.lastSent.to}</p></div><div className="text-sm opacity-80 flex items-center gap-2"><Calendar size={15} />{new Date(summary.lastSent.createdAt).toLocaleString()}</div></section>}
 
-        {summary?.apiKeyUsage?.length > 0 && (
-          <div className="rounded-xl p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}>
-            <div className="flex items-center justify-between mb-5"><div><h2 className="text-lg font-semibold" style={{ color: foreground.color }}>API key activity</h2><p className="text-sm mt-1" style={{ color: mutedForeground.color }}>Requests recorded for each integration.</p></div><span className="text-xs font-semibold px-2.5 py-1 rounded-full" style={{ backgroundColor: secondary.color, color: mutedForeground.color }}>Per key</span></div>
-            <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">{summary.apiKeyUsage.map((key) => <div key={key._id} className="p-4 rounded-lg" style={{ backgroundColor: background.color, border: `1px solid ${border.color}` }}><div className="flex justify-between gap-3"><span className="font-medium truncate" style={{ color: foreground.color }}>{key.name || "Unnamed key"}</span><span className="font-bold" style={{ color: primary.color }}>{key.usageCount}</span></div><p className="text-xs mt-2" style={{ color: mutedForeground.color }}>{key.active ? "Active" : "Inactive"}{key.lastUsedAt ? ` · Last used ${new Date(key.lastUsedAt).toLocaleDateString()}` : " · Not used yet"}</p></div>)}</div>
-          </div>
-        )}
-
-        {/* Charts Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Bar Chart */}
-          <div
-            className="rounded-xl p-6 shadow-sm transition-all"
-            style={{
-              backgroundColor: card.color,
-              border: `1px solid ${border.color}`,
-            }}
-          >
-            <h2
-              className="text-lg font-semibold mb-6 flex items-center gap-2"
-              style={{ color: foreground.color }}
-            >
-              <BarChart size={20} style={{ color: primary.color }} />
-              Email Status Distribution
-            </h2>
-            <ResponsiveContainer width="100%" height={280}>
-              <BarChart
-                data={[
-                  { name: "Sent", value: summary?.sentEmails || 0 },
-                  { name: "Failed", value: summary?.failedEmails || 0 },
-                  { name: "Pending", value: summary?.pendingEmails || 0 },
-                ]}
-              >
-                <XAxis
-                  dataKey="name"
-                  stroke={mutedForeground.color}
-                  style={{ fontSize: "14px" }}
-                />
-                <YAxis
-                  stroke={mutedForeground.color}
-                  allowDecimals={false}
-                  style={{ fontSize: "14px" }}
-                />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: card.color,
-                    border: `1px solid ${border.color}`,
-                    borderRadius: "8px",
-                    color: foreground.color,
-                  }}
-                  cursor={{ fill: hover.background }}
-                />
-                <Bar
-                  dataKey="value"
-                  fill={primary.color}
-                  radius={[8, 8, 0, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-
-          {/* Pie Chart */}
-          <div
-            className="rounded-xl p-6 shadow-sm transition-all"
-            style={{
-              backgroundColor: card.color,
-              border: `1px solid ${border.color}`,
-            }}
-          >
-            <h2
-              className="text-lg font-semibold mb-6 flex items-center gap-2"
-              style={{ color: foreground.color }}
-            >
-              <TrendingUp size={20} style={{ color: primary.color }} />
-              Performance Overview
-            </h2>
-            <ResponsiveContainer width="100%" height={280}>
-              <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) =>
-                    `${name}: ${(percent * 100).toFixed(0)}%`
-                  }
-                  outerRadius={90}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: card.color,
-                    border: `1px solid ${border.color}`,
-                    borderRadius: "8px",
-                    color: foreground.color,
-                  }}
-                />
-                <Legend
-                  wrapperStyle={{ color: foreground.color, fontSize: "14px" }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        </div>
-
-        {summary?.lastSent && (
-          <div
-            className="rounded-xl p-6 shadow-sm transition-all"
-            style={{
-              backgroundColor: card.color,
-              border: `1px solid ${border.color}`,
-            }}
-          >
-            <div className="flex items-center gap-2 mb-4">
-              <div
-                className="p-2 rounded-lg"
-                style={{
-                  backgroundColor: theme === "light" ? "#f5f5f5" : "#1a1a1a",
-                }}
-              >
-                <CheckCircle2 size={20} style={{ color: "#22c55e" }} />
-              </div>
-              <h2
-                className="text-lg font-semibold"
-                style={{ color: foreground.color }}
-              >
-                Last Sent Email
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <p
-                  className="text-sm font-medium mb-1"
-                  style={{ color: mutedForeground.color }}
-                >
-                  Recipient
-                </p>
-                <p className="font-medium" style={{ color: foreground.color }}>
-                  {summary.lastSent.to}
-                </p>
-              </div>
-              <div>
-                <p
-                  className="text-sm font-medium mb-1"
-                  style={{ color: mutedForeground.color }}
-                >
-                  Subject
-                </p>
-                <p
-                  className="font-medium truncate"
-                  style={{ color: foreground.color }}
-                >
-                  {summary.lastSent.subject || "(No subject)"}
-                </p>
-              </div>
-              <div>
-                <p
-                  className="text-sm font-medium mb-1"
-                  style={{ color: mutedForeground.color }}
-                >
-                  Sent At
-                </p>
-                <p
-                  className="font-medium flex items-center gap-1"
-                  style={{ color: foreground.color }}
-                >
-                  <Calendar size={16} />
-                  {new Date(summary.lastSent.createdAt).toLocaleString()}
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Recent Emails Table */}
-        <div
-          className="rounded-xl shadow-sm overflow-hidden transition-all"
-          style={{
-            backgroundColor: card.color,
-            border: `1px solid ${border.color}`,
-          }}
-        >
-          {/* Table Header */}
-          <div className="p-6 border-b" style={{ borderColor: border.color }}>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-              <h2
-                className="text-lg font-semibold flex items-center gap-2"
-                style={{ color: foreground.color }}
-              >
-                <Mail size={20} style={{ color: primary.color }} />
-                Recent Emails
-              </h2>
-              <div className="flex flex-wrap items-center gap-3">
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                  <Filter size={18} style={{ color: mutedForeground.color }} />
-                  <select
-                    value={statusFilter}
-                    onChange={(e) => handleStatusFilterChange(e.target.value)}
-                    className="px-3 py-2 rounded-lg border outline-none text-sm"
-                    style={{
-                      backgroundColor: secondary.color,
-                      color: secondaryForeground.color,
-                      borderColor: border.color,
-                    }}
-                  >
-                    <option value="all">All Status</option>
-                    <option value="sent">Sent</option>
-                    <option value="failed">Failed</option>
-                    <option value="pending">Pending</option>
-                  </select>
-                </div>
-
-                {/* Export Button */}
-                <button
-                  className="flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all"
-                  style={{
-                    backgroundColor: secondary.color,
-                    color: secondaryForeground.color,
-                    border: `1px solid ${border.color}`,
-                  }}
-                >
-                  <Download size={16} />
-                  Export
-                </button>
-              </div>
-            </div>
-          </div>
-
-          {/* Table Content */}
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead>
-                <tr
-                  style={{
-                    backgroundColor: secondary.color,
-                    color: secondaryForeground.color,
-                  }}
-                >
-                  <th className="text-left py-4 px-6 font-semibold text-sm">
-                    Subject
-                  </th>
-                  <th className="text-left py-4 px-6 font-semibold text-sm">
-                    Recipient
-                  </th>
-                  <th className="text-left py-4 px-6 font-semibold text-sm">
-                    Status
-                  </th>
-                  <th className="text-left py-4 px-6 font-semibold text-sm">
-                    Date & Time
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {!recentEmails || recentEmails.length === 0 ? (
-                  <tr>
-                    <td
-                      colSpan="4"
-                      className="text-center py-12"
-                      style={{ color: mutedForeground.color }}
-                    >
-                      <Mail size={48} className="mx-auto mb-3 opacity-30" />
-                      <p className="text-lg font-medium">No emails found</p>
-                      <p className="text-sm mt-1">
-                        {statusFilter !== "all"
-                          ? `No ${statusFilter} emails to display`
-                          : "Start sending emails to see them here"}
-                      </p>
-                    </td>
-                  </tr>
-                ) : (
-                  recentEmails.map((email, index) => (
-                    <tr
-                      key={email._id}
-                      className="border-t transition-colors cursor-pointer"
-                      style={{
-                        borderColor: border.color,
-                        backgroundColor:
-                          index % 2 === 0 ? "transparent" : hover.background,
-                      }}
-                      onMouseEnter={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          hover.background;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.backgroundColor =
-                          index % 2 === 0 ? "transparent" : hover.background;
-                      }}
-                      onClick={() => setSelectedEmail(email)}
-                    >
-                      <td
-                        className="px-6 py-4"
-                        style={{ color: foreground.color }}
-                      >
-                        <div className="font-medium max-w-xs truncate">
-                          {email.subject || "(No subject)"}
-                        </div>
-                      </td>
-                      <td
-                        className="px-6 py-4"
-                        style={{ color: foreground.color }}
-                      >
-                        <div className="max-w-xs truncate">{email.to}</div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <span
-                          className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold"
-                          style={{
-                            backgroundColor:
-                              email.status === "sent"
-                                ? theme === "light"
-                                  ? "#dcfce7"
-                                  : "#14532d"
-                                : email.status === "failed"
-                                ? theme === "light"
-                                  ? "#fee2e2"
-                                  : "#7f1d1d"
-                                : theme === "light"
-                                ? "#fef3c7"
-                                : "#78350f",
-                            color:
-                              email.status === "sent"
-                                ? "#22c55e"
-                                : email.status === "failed"
-                                ? "#ef4444"
-                                : "#f59e0b",
-                          }}
-                        >
-                          {email.status === "sent" && (
-                            <CheckCircle2 size={12} />
-                          )}
-                          {email.status === "failed" && <XCircle size={12} />}
-                          {email.status === "pending" && <Clock size={12} />}
-                          {email.status.charAt(0).toUpperCase() +
-                            email.status.slice(1)}
-                        </span>
-                      </td>
-                      <td
-                        className="px-6 py-4 text-sm"
-                        style={{ color: mutedForeground.color }}
-                      >
-                        {new Date(email.createdAt).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Backend-Driven Pagination */}
-          {pagination && pagination.totalPages > 1 && (
-            <div
-              className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 border-t"
-              style={{ borderColor: border.color }}
-            >
-              <p className="text-sm" style={{ color: mutedForeground.color }}>
-                Showing page {pagination.page} of {pagination.totalPages} (
-                {pagination.totalFiltered} total emails)
-              </p>
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => handlePageChange(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: secondary.color,
-                    color: secondaryForeground.color,
-                    border: `1px solid ${border.color}`,
-                  }}
-                >
-                  <ChevronLeft size={20} />
-                </button>
-
-                <div className="flex items-center gap-1">
-                  {[...Array(pagination.totalPages)].map((_, index) => {
-                    const pageNum = index + 1;
-                    // Show first, last, current, and adjacent pages
-                    if (
-                      pageNum === 1 ||
-                      pageNum === pagination.totalPages ||
-                      (pageNum >= currentPage - 1 && pageNum <= currentPage + 1)
-                    ) {
-                      return (
-                        <button
-                          key={pageNum}
-                          onClick={() => handlePageChange(pageNum)}
-                          className="w-10 h-10 rounded-lg font-medium transition-all"
-                          style={{
-                            backgroundColor:
-                              currentPage === pageNum
-                                ? primary.color
-                                : secondary.color,
-                            color:
-                              currentPage === pageNum
-                                ? primaryForeground.color
-                                : secondaryForeground.color,
-                            border: `1px solid ${border.color}`,
-                          }}
-                        >
-                          {pageNum}
-                        </button>
-                      );
-                    } else if (
-                      pageNum === currentPage - 2 ||
-                      pageNum === currentPage + 2
-                    ) {
-                      return (
-                        <span
-                          key={pageNum}
-                          className="px-2"
-                          style={{ color: mutedForeground.color }}
-                        >
-                          ...
-                        </span>
-                      );
-                    }
-                    return null;
-                  })}
-                </div>
-
-                <button
-                  onClick={() => handlePageChange(currentPage + 1)}
-                  disabled={currentPage === pagination.totalPages}
-                  className="p-2 rounded-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: secondary.color,
-                    color: secondaryForeground.color,
-                    border: `1px solid ${border.color}`,
-                  }}
-                >
-                  <ChevronRight size={20} />
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
+        <section className="rounded-2xl overflow-hidden" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }}><div className="p-5 md:p-6 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4" style={{ borderColor: border.color }}><div><h2 className="font-bold" style={{ color: foreground.color }}>Recent activity</h2><p className="text-xs mt-1" style={{ color: mutedForeground.color }}>Select a message to inspect its delivery trail.</p></div><div className="flex items-center gap-2"><div className="flex items-center gap-2"><Filter size={15} style={{ color: mutedForeground.color }} /><select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setCurrentPage(1); }} className="px-3 py-2 rounded-lg text-sm outline-none" style={{ backgroundColor: secondary.color, color: secondaryForeground.color, border: `1px solid ${border.color}` }}><option value="all">All statuses</option><option value="sent">Delivered</option><option value="failed">Failed</option><option value="pending">Queued</option></select></div><button className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium" style={{ backgroundColor: secondary.color, color: secondaryForeground.color, border: `1px solid ${border.color}` }}><Download size={15} />Export</button></div></div>
+          <div className="overflow-x-auto"><table className="w-full min-w-[680px]"><thead><tr style={{ backgroundColor: secondary.color }}><th className="text-left px-5 py-3 text-[11px] uppercase tracking-wide" style={{ color: mutedForeground.color }}>Message</th><th className="text-left px-5 py-3 text-[11px] uppercase tracking-wide" style={{ color: mutedForeground.color }}>Recipient</th><th className="text-left px-5 py-3 text-[11px] uppercase tracking-wide" style={{ color: mutedForeground.color }}>Status</th><th className="text-left px-5 py-3 text-[11px] uppercase tracking-wide" style={{ color: mutedForeground.color }}>Created</th></tr></thead><tbody>{recentEmails.length === 0 ? <tr><td colSpan="4" className="text-center py-14" style={{ color: mutedForeground.color }}><Mail size={32} className="mx-auto mb-2 opacity-40" /><p className="text-sm">No messages found</p></td></tr> : recentEmails.map((email, index) => { const status = statusStyle(email.status); const StatusIcon = status.icon; return <tr key={email._id} onClick={() => setSelectedEmail(email)} className="cursor-pointer transition-colors" style={{ borderTop: `1px solid ${border.color}`, backgroundColor: index % 2 ? hover.background : "transparent" }}><td className="px-5 py-4"><p className="font-semibold text-sm truncate max-w-[260px]" style={{ color: foreground.color }}>{email.subject || "(No subject)"}</p><p className="text-xs mt-1" style={{ color: mutedForeground.color }}>{email.from || "SMTPLite"}</p></td><td className="px-5 py-4 text-sm max-w-[240px] truncate" style={{ color: foreground.color }}>{email.to}</td><td className="px-5 py-4"><span className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-full text-xs font-semibold" style={{ backgroundColor: status.backgroundColor, color: status.color }}><StatusIcon size={13} />{email.status === "sent" ? "Delivered" : email.status === "failed" ? "Failed" : "Queued"}</span></td><td className="px-5 py-4 text-xs whitespace-nowrap" style={{ color: mutedForeground.color }}>{new Date(email.createdAt).toLocaleString()}</td></tr>; })}</tbody></table></div>
+          {pagination && pagination.totalPages > 1 && <div className="p-4 md:px-5 border-t flex flex-col sm:flex-row items-center justify-between gap-3" style={{ borderColor: border.color }}><p className="text-xs" style={{ color: mutedForeground.color }}>Page {pagination.page} of {pagination.totalPages} · {pagination.totalFiltered} messages</p><div className="flex items-center gap-1">{[<button key="prev" onClick={() => setCurrentPage((page) => Math.max(1, page - 1))} disabled={currentPage === 1} className="p-2 rounded-lg disabled:opacity-40" style={{ backgroundColor: secondary.color, color: secondaryForeground.color }}><ChevronLeft size={16} /></button>, <span key="page" className="px-3 text-sm font-semibold" style={{ color: foreground.color }}>{currentPage}</span>, <button key="next" onClick={() => setCurrentPage((page) => Math.min(pagination.totalPages, page + 1))} disabled={currentPage === pagination.totalPages} className="p-2 rounded-lg disabled:opacity-40" style={{ backgroundColor: secondary.color, color: secondaryForeground.color }}><ChevronRight size={16} /></button>]}</div></div>}
+        </section>
       </div>
-      {selectedEmail && (
-        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: "rgba(15, 23, 42, .48)" }} onClick={() => setSelectedEmail(null)}>
-          <div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} onClick={(event) => event.stopPropagation()}>
-            <div className="flex items-start justify-between gap-4 mb-6"><div><p className="text-xs font-bold uppercase tracking-[.16em] mb-2" style={{ color: primary.color }}>Delivery record</p><h2 className="text-xl font-bold" style={{ color: foreground.color }}>{selectedEmail.subject || "(No subject)"}</h2><p className="text-sm mt-1" style={{ color: mutedForeground.color }}>{selectedEmail._id}</p></div><button onClick={() => setSelectedEmail(null)} className="p-2 rounded-lg" style={{ backgroundColor: secondary.color, color: foreground.color }} aria-label="Close details"><X size={18} /></button></div>
-            <div className="grid sm:grid-cols-2 gap-3 mb-6">{[["From", selectedEmail.from], ["To", selectedEmail.to], ["Status", selectedEmail.status], ["Attempts", selectedEmail.attempts || 0], ["Queued", selectedEmail.createdAt ? new Date(selectedEmail.createdAt).toLocaleString() : "—"], ["Updated", selectedEmail.updatedAt ? new Date(selectedEmail.updatedAt).toLocaleString() : "—"]].map(([label, value]) => <div key={label} className="p-3 rounded-lg" style={{ backgroundColor: background.color, border: `1px solid ${border.color}` }}><p className="text-xs font-semibold uppercase tracking-wide" style={{ color: mutedForeground.color }}>{label}</p><p className="text-sm mt-1 break-words" style={{ color: foreground.color }}>{value || "—"}</p></div>)}</div>
-            <div className="mb-5"><h3 className="font-semibold mb-3" style={{ color: foreground.color }}>Delivery state history</h3><div className="space-y-2">{(selectedEmail.events?.length ? selectedEmail.events : [{ status: "queued", at: selectedEmail.createdAt }, { status: selectedEmail.status, at: selectedEmail.updatedAt }]).map((event, index) => <div key={`${event.status}-${event.at}-${index}`} className="flex items-center gap-3 text-sm"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: event.status === "failed" ? "#ef4444" : event.status === "sent" ? "#22c55e" : primary.color }} /><span className="font-medium capitalize" style={{ color: foreground.color }}>{event.status}</span><span style={{ color: mutedForeground.color }}>{event.at ? new Date(event.at).toLocaleString() : "—"}</span>{event.error && <span className="text-red-500 truncate">{event.error}</span>}</div>)}</div></div>
-            {selectedEmail.lastError && <div className="p-4 rounded-lg" style={{ backgroundColor: "rgba(239,68,68,.08)", border: "1px solid rgba(239,68,68,.22)" }}><p className="text-xs font-bold uppercase tracking-wide text-red-500 mb-1">Latest delivery error</p><p className="text-sm text-red-600 break-words">{selectedEmail.lastError}</p></div>}
-            {selectedEmail.meta && <details className="mt-5"><summary className="cursor-pointer text-sm font-semibold" style={{ color: foreground.color }}>Request metadata</summary><pre className="mt-3 p-4 rounded-lg overflow-x-auto text-xs" style={{ backgroundColor: background.color, color: mutedForeground.color }}>{JSON.stringify(selectedEmail.meta, null, 2)}</pre></details>}
-          </div>
-        </div>
-      )}
-    </div>
+      {selectedEmail && <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" style={{ backgroundColor: "rgba(15,23,42,.52)" }} onClick={() => setSelectedEmail(null)}><div className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl p-6" style={{ backgroundColor: card.color, border: `1px solid ${border.color}` }} onClick={(event) => event.stopPropagation()}><div className="flex justify-between gap-4 mb-6"><div><p className="text-xs uppercase tracking-[.16em] font-bold" style={{ color: primary.color }}>Delivery record</p><h2 className="text-xl font-bold mt-2" style={{ color: foreground.color }}>{selectedEmail.subject || "(No subject)"}</h2><p className="text-xs mt-1 break-all" style={{ color: mutedForeground.color }}>{selectedEmail._id}</p></div><button onClick={() => setSelectedEmail(null)} className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ backgroundColor: secondary.color, color: foreground.color }}><X size={17} /></button></div><div className="grid sm:grid-cols-2 gap-3">{[["From", selectedEmail.from], ["To", selectedEmail.to], ["Status", selectedEmail.status], ["Attempts", selectedEmail.attempts || 0], ["Queued", selectedEmail.createdAt && new Date(selectedEmail.createdAt).toLocaleString()], ["Updated", selectedEmail.updatedAt && new Date(selectedEmail.updatedAt).toLocaleString()]].map(([label, value]) => <div key={label} className="p-3 rounded-xl" style={{ backgroundColor: background.color, border: `1px solid ${border.color}` }}><p className="text-[11px] uppercase tracking-wide font-semibold" style={{ color: mutedForeground.color }}>{label}</p><p className="text-sm mt-1 break-words" style={{ color: foreground.color }}>{value || "—"}</p></div>)}</div><div className="mt-6"><h3 className="font-semibold mb-3" style={{ color: foreground.color }}>Delivery trail</h3><div className="space-y-2">{(selectedEmail.events?.length ? selectedEmail.events : [{ status: "queued", at: selectedEmail.createdAt }, { status: selectedEmail.status, at: selectedEmail.updatedAt }]).map((event, index) => <div key={`${event.status}-${event.at}-${index}`} className="flex items-center gap-3 text-sm"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: event.status === "failed" ? "#dc2626" : event.status === "sent" ? "#16a34a" : primary.color }} /><span className="capitalize font-medium" style={{ color: foreground.color }}>{event.status}</span><span style={{ color: mutedForeground.color }}>{event.at ? new Date(event.at).toLocaleString() : "—"}</span>{event.error && <span className="text-red-600 truncate">{event.error}</span>}</div>)}</div></div>{selectedEmail.lastError && <div className="mt-5 p-4 rounded-xl text-sm text-red-600" style={{ backgroundColor: "rgba(220,38,38,.08)", border: "1px solid rgba(220,38,38,.2)" }}><strong>Latest error:</strong> {selectedEmail.lastError}</div>}</div></div>}
+    </main>
   );
 };
 
